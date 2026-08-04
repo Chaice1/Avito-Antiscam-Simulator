@@ -5,12 +5,12 @@ import (
 	"time"
 
 	"antiscam-simulator/internal/user/model"
-
 	"github.com/google/uuid"
 )
 
 type UserRepository interface {
 	Create(ctx context.Context, user model.User) error
+	SaveGame(ctx context.Context, game *model.GameSave) error
 }
 
 type UserService struct {
@@ -35,4 +35,8 @@ func (s *UserService) Register(ctx context.Context, username string) (string, er
 	}
 
 	return userID, nil
+}
+
+func (s *UserService) SaveGame(ctx context.Context, game *model.GameSave) error {
+	return s.repo.SaveGame(ctx, game)
 }
