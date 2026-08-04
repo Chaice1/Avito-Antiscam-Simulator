@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"os"
 
+	"antiscam-simulator/internal/transport/rest"
 	"antiscam-simulator/internal/user/adapter"
 	"antiscam-simulator/internal/user/controller"
 	"antiscam-simulator/internal/user/service"
@@ -46,28 +46,7 @@ func run() error {
 	svc := service.NewUserService(repo)
 	handler := controller.NewUserHandler(svc)
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("POST /api/v1/register", handler.Register)
-	mux.HandleFunc("POST /api/v1/games", handler.SaveGame)
-	mux.HandleFunc("GET /api/v1/users/{user_id}/history", handler.GetHistory)
+	server := rest.NewServer(port, handler)
 
-	slog.Info("starting server", "port", port)
-	if err := http.ListenAndServe(":"+port, corsMiddleware(mux)); err != nil {
-		return fmt.Errorf("server stopped with error: %w", err)
-	}
-
-	return nil
-}
-
-func corsMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
+	return server.Run(ctx)
 }
