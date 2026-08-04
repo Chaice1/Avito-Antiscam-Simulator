@@ -11,6 +11,7 @@ import (
 type UserRepository interface {
 	Create(ctx context.Context, user model.User) error
 	SaveGame(ctx context.Context, game *model.GameSave) error
+	GetHistory(ctx context.Context, userID string) ([]model.GameHistoryItem, error)
 }
 
 type UserService struct {
@@ -39,4 +40,8 @@ func (s *UserService) Register(ctx context.Context, username string) (string, er
 
 func (s *UserService) SaveGame(ctx context.Context, game *model.GameSave) error {
 	return s.repo.SaveGame(ctx, game)
+}
+
+func (s *UserService) GetHistory(ctx context.Context, userID string) ([]model.GameHistoryItem, error) {
+	return s.repo.GetHistory(ctx, userID)
 }

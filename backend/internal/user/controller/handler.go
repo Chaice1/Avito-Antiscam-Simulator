@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"antiscam-simulator/internal/user/model"
@@ -11,6 +12,7 @@ import (
 type UserServicer interface {
 	Register(ctx context.Context, username string) (string, error)
 	SaveGame(ctx context.Context, game *model.GameSave) error
+	GetHistory(ctx context.Context, userID string) ([]model.GameHistoryItem, error)
 }
 
 type UserHandler struct {
@@ -101,6 +103,36 @@ func (h *UserHandler) SaveGame(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(map[string]string{
 		"status":  "success",
 		"message": "game history saved successfully",
+	})
+}
+
+func (h *UserHandler) GetHistory(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		h.writeError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+
+	userID := r.PathValue("user_id")
+	if userID == "" {
+		h.writeError(w, http.StatusBadRequest, "user_id is required")
+		return
+	}
+
+	history, err := h.service.GetHistory(r.Context(), userID)
+	if err != nil {
+		if errors.Is(err, model.ErrUserNotFound) {
+			h.writeError(w, http.StatusNotFound, "user not found")
+			return
+		}
+		h.writeError(w, http.StatusInternalServerError, "failed to get user statistics")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(model.UserHistoryResponse{
+		UserID:  userID,
+		History: history,
 	})
 }
 

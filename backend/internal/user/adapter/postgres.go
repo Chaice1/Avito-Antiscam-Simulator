@@ -28,3 +28,46 @@ func (r *UserRepository) SaveGame(ctx context.Context, game *model.GameSave) err
 	_, err := r.pool.Exec(ctx, query, game.UserID, game.ScenarioID, game.ScenarioDescription, game.RiskLevel)
 	return err
 }
+
+func (r *UserRepository) UserExists(ctx context.Context, userID string) (bool, error) {
+	var exists bool
+	query := `SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)`
+	err := r.pool.QueryRow(ctx, query, userID).Scan(&exists)
+	return exists, err
+}
+
+func (r *UserRepository) GetHistory(ctx context.Context, userID string) ([]model.GameHistoryItem, error) {
+	exists, err := r.UserExists(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, model.ErrUserNotFound
+	}
+
+	query := `SELECT scenario_id, scenario_description, risk_level, created_at FROM game_saves WHERE user_id = $1 ORDER BY created_at DESC`
+	rows, err := r.pool.Query(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var history []model.GameHistoryItem
+	for rows.Next() {
+		var item model.GameHistoryItem
+		if err := rows.Scan(&item.ScenarioID, &item.ScenarioDescription, &item.RiskLevel, &item.CreatedAt); err != nil {
+			return nil, err
+		}
+		history = append(history, item)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	if history == nil {
+		history = []model.GameHistoryItem{}
+	}
+
+	return history, nil
+}
