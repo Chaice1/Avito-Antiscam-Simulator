@@ -10,9 +10,6 @@ export default function AppLayout() {
     <Layout style={{ minHeight: '100vh', background: '#fff' }}>
       <Header
         style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 10,
           background: '#fff',
           borderBottom: `1px solid ${colors.border}`,
           display: 'flex',
@@ -23,13 +20,27 @@ export default function AppLayout() {
           lineHeight: 'normal',
         }}
       >
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <SafetyCertificateFilled style={{ color: colors.primary, fontSize: 22 }} />
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* Круглая плашка со щитом */}
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: '50%',
+              background: colors.lightBlueBg,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <SafetyCertificateFilled style={{ color: colors.primary, fontSize: 20 }} />
+          </div>
           <span style={{ fontWeight: 700, fontSize: 18, color: colors.textMain }}>
             Антискам тренажер
           </span>
         </Link>
 
+        {/* Бейдж-пилюля уровня безопасности */}
         <div
           style={{
             display: 'flex',
@@ -45,7 +56,7 @@ export default function AppLayout() {
         </div>
       </Header>
 
-      <Content style={{ padding: '32px 24px' }}>
+      <Content style={{ padding: 0 }}>
         <Outlet />
       </Content>
     </Layout>

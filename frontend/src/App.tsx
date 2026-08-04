@@ -5,9 +5,6 @@ import LandingPage from './pages/LandingPage'
 import TrainPage from './pages/TrainPage'
 import { colors } from './shared/theme'
 
-// App.tsx — корневой компонент. Здесь "карта" адресов сайта:
-// какой URL открылся — такой экран показываем.
-// ConfigProvider задаёт глобальную тему Ant Design (цвета, скругления).
 export default function App() {
   return (
     <BrowserRouter>
