@@ -9,7 +9,7 @@ golint:
 	
 
 test:
-	go test -v -rave ./...
+	go test -v -race ./...
 	
 
 run:
