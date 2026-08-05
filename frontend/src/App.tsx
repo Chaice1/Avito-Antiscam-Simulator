@@ -3,6 +3,7 @@ import { ConfigProvider } from 'antd'
 import Layout from './app/Layout'
 import LandingPage from './pages/LandingPage'
 import TrainPage from './pages/TrainPage'
+import SimulatorPage from './pages/SimulatorPage'
 import { colors } from './shared/theme'
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<LandingPage />} />
             <Route path="/train" element={<TrainPage />} />
+            <Route path="/train/:id" element={<SimulatorPage />} />
           </Route>
         </Routes>
       </ConfigProvider>
