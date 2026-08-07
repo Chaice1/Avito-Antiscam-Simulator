@@ -1,5 +1,6 @@
 package main
 
+//app
 import (
 	"antiscam-simulator/config"
 	localstorage "antiscam-simulator/internal/simulator/adapter/localStorage"
