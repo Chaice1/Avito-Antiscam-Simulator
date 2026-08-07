@@ -13,7 +13,7 @@ test:
 	
 
 run:
-	go run cmd/app/main.go
+	go run cmd/app/main.go --config=./config/config.yaml
 
 tidy:
 	go mod tidy
