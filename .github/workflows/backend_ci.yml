@@ -36,7 +36,7 @@ jobs:
       run: go test -v -race ./...
 
     - name: Run GolangCI-Lint
-      uses: golangci/golangci-lint-action@v3
+      uses: golangci/golangci-lint-action@v9
       with:
         version: latest
         working-directory: backend
