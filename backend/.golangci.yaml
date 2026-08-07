@@ -12,7 +12,7 @@ linters-settings:
   goconst:
 
     min-len: 3
-    min-occurences: 3
+    min-occurrences: 3
   gocritic:
     enabled-tags:
       - performance
