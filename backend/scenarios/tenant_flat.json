@@ -1,0 +1,80 @@
+{
+  "scenario_id": "tenant_flat",
+  "title": "Аренда квартиры посуточно",
+  "role": "buyer",
+  "start_node_id": "node_1",
+  "nodes": {
+    "node_1": {
+      "question": "Здравствуйте! Квартира на ваши даты свободна. Вас сколько человек будет?",
+      "options": [
+        {
+          "id": "ans_1_1",
+          "text": "Нас двое. Как можно забронировать?",
+          "risk": 0,
+          "mistake_tag": "",
+          "next_node_id": "node_2_deposit"
+        },
+        {
+          "id": "ans_1_2",
+          "text": "Я один, но приеду поздно ночью. Заселите?",
+          "risk": 0,
+          "mistake_tag": "",
+          "next_node_id": "node_2_deposit"
+        }
+      ]
+    },
+    "node_2_deposit": {
+      "question": "Смотрите, на эти даты очень большой спрос. Чтобы я закрепил квартиру за вами, скиньте 2000 рублей аванса мне на Сбербанк.",
+      "options": [
+        {
+          "id": "ans_2_1",
+          "text": "А если у нас планы изменятся, вы вернете аванс?",
+          "risk": 20,
+          "mistake_tag": "CONSIDERED_PREPAYMENT",
+          "next_node_id": "node_3_manipulation"
+        },
+        {
+          "id": "ans_2_2",
+          "text": "Я готов оплатить бронь только через онлайн-бронирование Авито.",
+          "risk": -10,
+          "mistake_tag": "",
+          "next_node_id": "node_win_safe"
+        },
+        {
+          "id": "ans_2_3",
+          "text": "Ок, сейчас переведу, чтобы точно не заняли.",
+          "risk": 100,
+          "mistake_tag": "AGREED_PREPAYMENT",
+          "next_node_id": "game_over"
+        }
+      ]
+    },
+    "node_3_manipulation": {
+      "question": "Конечно верну! Я честный человек, посмотрите мои отзывы. Давайте переводите, а то я сейчас другим сдам.",
+      "options": [
+        {
+          "id": "ans_3_1",
+          "text": "Хорошо, перевожу.",
+          "risk": 100,
+          "mistake_tag": "AGREED_PREPAYMENT",
+          "next_node_id": "game_over"
+        },
+        {
+          "id": "ans_3_2",
+          "text": "Нет, я не перевожу деньги незнакомым людям без гарантий платформы.",
+          "risk": -20,
+          "mistake_tag": "",
+          "next_node_id": "node_win_safe"
+        }
+      ]
+    },
+    "node_win_safe": {
+      "question": "Арендодатель перестал отвечать. Вы не потеряли деньги, но квартиру придется поискать другую.",
+      "options": []
+    },
+    "game_over": {
+      "question": "Вы перевели деньги, после чего арендодатель добавил вас в черный список. Вы остались без жилья и без денег.",
+      "options": []
+    }
+  }
+}
