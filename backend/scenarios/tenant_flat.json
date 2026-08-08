@@ -1,7 +1,9 @@
 {
-  "scenario_id": "tenant_flat",
-  "title": "Аренда квартиры посуточно",
-  "role": "buyer",
+  "scenario": {
+    "scenario_id": "tenant_flat",
+    "title": "Аренда квартиры посуточно",
+    "role": "buyer"
+  },
   "start_node_id": "node_1",
   "nodes": {
     "node_1": {
@@ -11,69 +13,88 @@
           "id": "ans_1_1",
           "text": "Нас двое. Как можно забронировать?",
           "risk": 0,
-          "mistake_tag": "",
+          "tag_id": "GOOD_ORDINARY_CHAT",
           "next_node_id": "node_2_deposit"
         },
         {
           "id": "ans_1_2",
-          "text": "Я один, но приеду поздно ночью. Заселите?",
+          "text": "Я один. Могу нажать 'Забронировать' прямо сейчас в объявлении?",
           "risk": 0,
-          "mistake_tag": "",
+          "tag_id": "GOOD_SAFE_DEAL",
           "next_node_id": "node_2_deposit"
         }
       ]
     },
     "node_2_deposit": {
-      "question": "Смотрите, на эти даты очень большой спрос. Чтобы я закрепил квартиру за вами, скиньте 2000 рублей аванса мне на Сбербанк.",
+      "question": "Смотрите, я отключил онлайн-бронь, потому что Авито берет большую комиссию. Скиньте 2000 рублей аванса мне на Сбербанк, и я закрою даты для вас.",
       "options": [
         {
           "id": "ans_2_1",
           "text": "А если у нас планы изменятся, вы вернете аванс?",
           "risk": 20,
-          "mistake_tag": "CONSIDERED_PREPAYMENT",
+          "tag_id": "CONSIDERED_PREPAYMENT",
           "next_node_id": "node_3_manipulation"
         },
         {
           "id": "ans_2_2",
           "text": "Я готов оплатить бронь только через онлайн-бронирование Авито.",
-          "risk": -10,
-          "mistake_tag": "",
+          "risk": 0,
+          "tag_id": "GOOD_REFUSED_PREPAYMENT",
           "next_node_id": "node_win_safe"
         },
         {
           "id": "ans_2_3",
           "text": "Ок, сейчас переведу, чтобы точно не заняли.",
           "risk": 100,
-          "mistake_tag": "AGREED_PREPAYMENT",
+          "tag_id": "AGREED_PREPAYMENT",
           "next_node_id": "game_over"
         }
       ]
     },
     "node_3_manipulation": {
-      "question": "Конечно верну! Я честный человек, посмотрите мои отзывы. Давайте переводите, а то я сейчас другим сдам.",
+      "question": "Конечно верну! Я честный человек, посмотрите мои отзывы. Только переводите быстрее, а то мне сейчас другие жильцы уже звонят.",
       "options": [
         {
           "id": "ans_3_1",
-          "text": "Хорошо, перевожу.",
-          "risk": 100,
-          "mistake_tag": "AGREED_PREPAYMENT",
-          "next_node_id": "game_over"
+          "text": "Посмотреть отзывы в профиле.",
+          "risk": 10,
+          "tag_id": "TRUSTED_REVIEWS",
+          "next_node_id": "node_4_reviews"
         },
         {
           "id": "ans_3_2",
           "text": "Нет, я не перевожу деньги незнакомым людям без гарантий платформы.",
-          "risk": -20,
-          "mistake_tag": "",
+          "risk": 0,
+          "tag_id": "GOOD_REFUSED_PREPAYMENT",
+          "next_node_id": "node_win_safe"
+        }
+      ]
+    },
+    "node_4_reviews": {
+      "question": "(В профиле 5 отличных отзывов, но все написаны за последнюю неделю). \nАрендодатель: Ну что, переводите? Жду 5 минут и отдаю другим.",
+      "options": [
+        {
+          "id": "ans_4_1",
+          "text": "Хорошо, перевожу 2000 рублей.",
+          "risk": 100,
+          "tag_id": "AGREED_PREPAYMENT",
+          "next_node_id": "game_over"
+        },
+        {
+          "id": "ans_4_2",
+          "text": "Отзывы выглядят накрученными. Я отказываюсь от аренды.",
+          "risk": 0,
+          "tag_id": "GOOD_RECOGNIZED_PHISHING",
           "next_node_id": "node_win_safe"
         }
       ]
     },
     "node_win_safe": {
-      "question": "Арендодатель перестал отвечать. Вы не потеряли деньги, но квартиру придется поискать другую.",
+      "question": "Арендодатель перестал отвечать и кинул вас в ЧС. Вы не потеряли деньги, но квартиру придется поискать другую.",
       "options": []
     },
     "game_over": {
-      "question": "Вы перевели деньги, после чего арендодатель добавил вас в черный список. Вы остались без жилья и без денег.",
+      "question": "Вы перевели деньги, после чего арендодатель удалил объявление. Вы остались без жилья и без денег.",
       "options": []
     }
   }

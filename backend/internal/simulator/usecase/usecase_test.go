@@ -59,6 +59,10 @@ func (m *mockStorage) GetNode(scenarioID, nodeID string) (simulatordomain.Node, 
 	return node, nil
 }
 
+func (m *mockStorage) GetScenarios() []*simulatordomain.Scenario {
+	return nil
+}
+
 func TestProcessStep(t *testing.T) {
 
 	storageMock := &mockStorage{
@@ -67,8 +71,8 @@ func TestProcessStep(t *testing.T) {
 				Question: "Тестовый вопрос",
 				Options: []simulatordomain.Option{
 					{ID: "ans_safe", Risk: 0, NextNodeID: "node_2_safe"},
-					{ID: "ans_risk", Risk: 40, MistakeTag: "TEST_MISTAKE", NextNodeID: "node_3_risk"},
-					{ID: "ans_fatal", Risk: 100, MistakeTag: "FATAL_ERROR", NextNodeID: "node_game_over"},
+					{ID: "ans_risk", Risk: 40, TagID: "TEST_MISTAKE", NextNodeID: "node_3_risk"},
+					{ID: "ans_fatal", Risk: 100, TagID: "FATAL_ERROR", NextNodeID: "node_game_over"},
 					{ID: "ans_safe1", Risk: -30, NextNodeID: "node_3_safe"},
 				},
 			},

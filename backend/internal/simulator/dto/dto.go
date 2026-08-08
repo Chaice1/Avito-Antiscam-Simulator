@@ -16,6 +16,12 @@ type StartGameResponse struct {
 	Options   []OptionDto `json:"options"`
 }
 
+type Scenario struct {
+	ScenarioID string `json:"scenario_id"`
+	Title      string `json:"title"`
+	Role       string `json:"role"`
+}
+
 type ProcessStepRequest struct {
 	SessiondID string `json:"session_id"`
 	AnswerID   string `json:"answer_id"`
@@ -25,13 +31,17 @@ type ProcessStepResponse struct {
 	SessionID  string      `json:"session_id"`
 	Risk       int32       `json:"risk"`
 	FinalGrade string      `json:"final_grade,omitempty"`
-	Mistakes   []Mistake   `json:"mistakes,omitempty"`
+	Tags       []Tag       `json:"tags,omitempty"`
 	IsOver     bool        `json:"is_over"`
 	Question   string      `json:"question,omitempty"`
 	Options    []OptionDto `json:"options,omitempty"`
 }
 
-type Mistake struct {
+type GetScenariosResponse struct {
+	Scenarios []*Scenario `json:"scenarios"`
+}
+
+type Tag struct {
 	Question    string `json:"question"`
 	Answer      string `json:"answer"`
 	Explanation string `json:"explanation"`
@@ -43,9 +53,7 @@ type OptionDto struct {
 }
 
 type Graph struct {
-	ScenarioID  string          `json:"scenario_id"`
-	Title       string          `json:"title"`
-	Role        string          `json:"role"`
+	Scenario    Scenario        `json:"scenario"`
 	StartNodeID string          `json:"start_node_id"`
 	Nodes       map[string]Node `json:"nodes"`
 }
@@ -59,7 +67,7 @@ type Option struct {
 	ID         string `json:"id"`
 	Text       string `json:"text"`
 	Risk       int32  `json:"risk"`
-	MistakeTag string `json:"mistake_tag"`
+	TagID      string `json:"tag_id"`
 	NextNodeID string `json:"next_node_id"`
 }
 
@@ -73,7 +81,7 @@ func (g *Graph) MapDtoToDomain() *simulatordomain.Graph {
 				ID:         option.ID,
 				Text:       option.Text,
 				Risk:       option.Risk,
-				MistakeTag: option.MistakeTag,
+				TagID:      option.TagID,
 				NextNodeID: option.NextNodeID,
 			})
 		}
@@ -84,9 +92,11 @@ func (g *Graph) MapDtoToDomain() *simulatordomain.Graph {
 	}
 
 	return &simulatordomain.Graph{
-		Title:       g.Title,
-		Role:        g.Role,
-		ScenarioID:  g.ScenarioID,
+		Scenario: simulatordomain.Scenario{
+			Title:      g.Scenario.Title,
+			Role:       g.Scenario.Role,
+			ScenarioID: g.Scenario.ScenarioID,
+		},
 		StartNodeID: g.StartNodeID,
 		Nodes:       nodes,
 	}

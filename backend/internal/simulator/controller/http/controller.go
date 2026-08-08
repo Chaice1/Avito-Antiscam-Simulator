@@ -3,6 +3,7 @@ package simulatorcontroller
 import (
 	simulatordomain "antiscam-simulator/internal/simulator/domain"
 	simulatordto "antiscam-simulator/internal/simulator/dto"
+	userdomain "antiscam-simulator/internal/user/domain"
 	"context"
 	"encoding/json"
 	"errors"
@@ -13,8 +14,12 @@ import (
 type SimulatorUsecase interface {
 	StartGame(context.Context, string, string) (string, *simulatordomain.Node, error)
 	ProcessStep(context.Context, string, string) (*simulatordomain.Node, *simulatordomain.Session, error)
+	GetScenarios() []*simulatordomain.Scenario
 }
 
+type UserStorage interface {
+	SaveTrainingResult(context.Context, *userdomain.TrainingResult) error
+}
 type LocalStorage interface {
 	GetRole(string) string
 	GetTitle(string) string
@@ -23,12 +28,14 @@ type LocalStorage interface {
 type SimulatorController struct {
 	su SimulatorUsecase
 	ls LocalStorage
+	us UserStorage
 }
 
-func NewSimulatorController(su SimulatorUsecase, ls LocalStorage) *SimulatorController {
+func NewSimulatorController(su SimulatorUsecase, ls LocalStorage, us UserStorage) *SimulatorController {
 	return &SimulatorController{
 		su: su,
 		ls: ls,
+		us: us,
 	}
 }
 
@@ -108,26 +115,48 @@ func (sc *SimulatorController) ProcessStep() http.HandlerFunc {
 					FinalGrade = "Жертва мошенничества"
 				}
 
-				Mistakes := make([]simulatordto.Mistake, len(session.CurrentMistakes))
+				Tags := make([]simulatordto.Tag, len(session.Tags))
 
-				for i, mistake := range session.CurrentMistakes {
+				UserTags := make([]userdomain.Tag, len(session.Tags))
+				for i, tag := range session.Tags {
 
-					respMistake := simulatordto.Mistake{
-						Question: mistake.Question,
-						Answer:   mistake.Answer,
-					}
-					if val, ok := simulatordomain.MistakeDictionary[mistake.MistakeTag]; ok {
-						respMistake.Explanation = val
+					respTag := simulatordto.Tag{
+						Question: tag.Question,
+						Answer:   tag.Answer,
 					}
 
-					Mistakes[i] = respMistake
+					userTag := userdomain.Tag{
+						Question: tag.Question,
+						Answer:   tag.Answer,
+					}
+
+					if val, ok := simulatordomain.TagDictionary[tag.TagID]; ok {
+						respTag.Explanation = val
+						userTag.Explanation = val
+					}
+
+					Tags[i] = respTag
+					UserTags[i] = userTag
+				}
+
+				err = sc.us.SaveTrainingResult(r.Context(), &userdomain.TrainingResult{
+					SessionID:  session.SessionID,
+					ScenarioID: session.ScenarioID,
+					UserID:     session.UserID,
+					TotalRisk:  session.TotalRisk,
+					FinalGrade: FinalGrade,
+					Tags:       UserTags,
+				})
+
+				if err != nil {
+					slog.Error("failed to save training Result", "error", err)
 				}
 
 				resp = simulatordto.ProcessStepResponse{
 					SessionID:  session.SessionID,
 					Risk:       session.TotalRisk,
 					FinalGrade: FinalGrade,
-					Mistakes:   Mistakes,
+					Tags:       Tags,
 					IsOver:     session.IsOver,
 					Question:   node.Question,
 				}
@@ -167,6 +196,29 @@ func (sc *SimulatorController) ProcessStep() http.HandlerFunc {
 
 		writeJSON(w, http.StatusOK, resp)
 
+	}
+}
+
+func (sc *SimulatorController) GetScenarios() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		role := r.URL.Query().Get("role")
+
+		scenarios := sc.su.GetScenarios()
+
+		resp := simulatordto.GetScenariosResponse{
+			Scenarios: make([]*simulatordto.Scenario, 0, len(scenarios)),
+		}
+
+		for _, scenario := range scenarios {
+			if scenario.Role == role || role == "" {
+				resp.Scenarios = append(resp.Scenarios, &simulatordto.Scenario{
+					ScenarioID: scenario.ScenarioID,
+					Role:       scenario.Role,
+					Title:      scenario.Title,
+				})
+			}
+		}
+		writeJSON(w, http.StatusOK, resp)
 	}
 }
 

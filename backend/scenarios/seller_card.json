@@ -1,100 +1,83 @@
 {
-  "scenario_id": "seller_card",
-  "title": "Продажа зимней резины",
-  "role": "seller",
+  "scenario": {
+    "scenario_id": "seller_tires",
+    "title": "Продажа комплекта зимней резины",
+    "role": "seller"
+  },
   "start_node_id": "node_1",
   "nodes": {
     "node_1": {
-      "question": "Добрый день! Резина еще продается? Я из другого региона, хочу купить Авито-доставкой.",
+      "question": "Добрый день! Резина еще продается? Готов забрать без торга, если отправите Авито-доставкой в Тулу.",
       "options": [
         {
           "id": "ans_1_1",
-          "text": "Да, конечно. Оформляйте заказ на сайте.",
+          "text": "Да, конечно. Оформляйте заказ прямо в объявлении.",
           "risk": 0,
-          "mistake_tag": "",
-          "next_node_id": "node_2_messenger"
+          "tag_id": "GOOD_SAFE_DEAL",
+          "next_node_id": "node_2_support"
         },
         {
           "id": "ans_1_2",
-          "text": "Я не отправляю доставкой, только личная встреча.",
+          "text": "Такие тяжелые вещи не отправляю, только самовывоз.",
           "risk": 0,
-          "mistake_tag": "",
+          "tag_id": "GOOD_PERSONAL_MEET",
           "next_node_id": "node_win_safe"
         }
       ]
     },
-    "node_2_messenger": {
-      "question": "Отлично. Слушайте, я тут редко бываю, уведомления не приходят. Напишите мне в Telegram @avito_buyer2024, там всё обсудим?",
+    "node_2_support": {
+      "question": "Слушайте, я нажимаю 'Купить', а мне выдает ошибку. Пишет: 'У продавца не подтвержден Email'. Можете написать мне вашу электронку, я введу и оплачу?",
       "options": [
         {
           "id": "ans_2_1",
-          "text": "Ок, сейчас напишу.",
-          "risk": 30,
-          "mistake_tag": "WENT_TO_MESSENGER",
+          "text": "Да, моя почта: ivanov@mail.ru",
+          "risk": 40,
+          "tag_id": "GAVE_PERSONAL_DATA",
           "next_node_id": "node_3_email"
         },
         {
           "id": "ans_2_2",
-          "text": "Давайте общаться только в чате Авито.",
+          "text": "Авито не просит почту продавца. Оформляйте так, либо отменяем сделку.",
           "risk": 0,
-          "mistake_tag": "",
-          "next_node_id": "node_4_fake_support"
+          "tag_id": "GOOD_RECOGNIZED_PHISHING",
+          "next_node_id": "node_win_smart"
         }
       ]
     },
     "node_3_email": {
-      "question": "[В Телеграме] Я сейчас оформлю заказ. Авито просит указать email продавца для отправки чека. Напишите вашу почту?",
+      "question": "(Вам на почту приходит письмо: 'АВИТО: Покупатель оплатил товар. Нажмите кнопку ПОЛУЧИТЬ СРЕДСТВА, чтобы деньги зачислились на карту') \nПокупатель: Я всё оплатил! Подтвердите получение на почте.",
       "options": [
         {
           "id": "ans_3_1",
-          "text": "Написать свой email.",
-          "risk": 40,
-          "mistake_tag": "GAVE_PERSONAL_DATA",
-          "next_node_id": "node_5_phishing"
-        },
-        {
-          "id": "ans_3_2",
-          "text": "Авито не требует email продавца для оплаты. Отменяем сделку.",
-          "risk": -20,
-          "mistake_tag": "",
-          "next_node_id": "node_win_smart"
-        }
-      ]
-    },
-    "node_4_fake_support": {
-      "question": "Ну ладно... Я пытаюсь оплатить, но Авито пишет: 'У продавца не привязана карта для получения средств'. Вот скриншот. Можете привязать?",
-      "options": [
-        {
-          "id": "ans_4_1",
-          "text": "Странно, сейчас привяжу. Что для этого нужно?",
-          "risk": 30,
-          "mistake_tag": "BELIEVED_FAKE_SCREENSHOT",
-          "next_node_id": "node_5_phishing"
-        },
-        {
-          "id": "ans_4_2",
-          "text": "Карта привязывается автоматически. Ничего дополнительно делать не нужно.",
-          "risk": 0,
-          "mistake_tag": "",
-          "next_node_id": "node_win_smart"
-        }
-      ]
-    },
-    "node_5_phishing": {
-      "question": "Вам на почту (или в чат) пришла ссылка: http://avito-support-secure.ru/receive. Перейдите по ней и введите данные карты, чтобы получить деньги.",
-      "options": [
-        {
-          "id": "ans_5_1",
-          "text": "Перейти по ссылке и ввести данные.",
+          "text": "Нажать на кнопку в письме.",
           "risk": 100,
-          "mistake_tag": "CLICKED_PHISHING_LINK",
+          "tag_id": "CLICKED_PHISHING_LINK",
           "next_node_id": "game_over"
         },
         {
-          "id": "ans_5_2",
-          "text": "Я не буду переходить по сторонним ссылкам. До свидания.",
-          "risk": -30,
-          "mistake_tag": "",
+          "id": "ans_3_2",
+          "text": "Зайти в официальное приложение Авито и проверить статус заказа.",
+          "risk": 0,
+          "tag_id": "GOOD_STAYED_IN_CHAT",
+          "next_node_id": "node_4_verify"
+        }
+      ]
+    },
+    "node_4_verify": {
+      "question": "В приложении Авито заказа нет. В чате тоже нет уведомлений об оплате.",
+      "options": [
+        {
+          "id": "ans_4_1",
+          "text": "Наверное, глюк приложения. Пойду перейду по ссылке из письма.",
+          "risk": 100,
+          "tag_id": "CLICKED_PHISHING_LINK",
+          "next_node_id": "game_over"
+        },
+        {
+          "id": "ans_4_2",
+          "text": "Оплаты в приложении нет, значит вы мошенник. Блокирую.",
+          "risk": 0,
+          "tag_id": "GOOD_SAFE_DEAL",
           "next_node_id": "node_win_smart"
         }
       ]
@@ -108,7 +91,7 @@
       "options": []
     },
     "game_over": {
-      "question": "Деньги с вашей карты были списаны. Вы стали жертвой мошенников.",
+      "question": "Кнопка в письме вела на поддельный сайт. Вы ввели данные своей карты, и мошенники списали с нее все средства.",
       "options": []
     }
   }
