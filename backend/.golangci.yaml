@@ -33,6 +33,9 @@ linters:
       - linters:
           - revive
         text: "exported (method|function|type|const|var) (.+) should have comment or be unexported"
+      - linters:
+          - revive
+        text: "should have a package comment"
 
 issues:
   max-issues-per-linter: 0
