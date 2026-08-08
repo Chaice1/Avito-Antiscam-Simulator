@@ -41,7 +41,17 @@ export default function AppLayout() {
         </Link>
 
         {/* Бейдж-пилюля уровня безопасности */}
-        <Link to="/progress" style={{ display: 'flex', alignItems: 'center', gap: 6, background: colors.cardBg, borderRadius: 999, padding: '6px 14px' }}>
+        <Link
+          to="/progress"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            background: colors.cardBg,
+            borderRadius: 999,
+            padding: '6px 14px',
+          }}
+        >
           <StarFilled style={{ color: colors.primary, fontSize: 13 }} />
           <span style={{ color: colors.textSecondary, fontSize: 13 }}>
             Мой уровень безопасности

@@ -3,7 +3,11 @@ import { Button, Empty } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import { RiseOutlined } from '@ant-design/icons'
 import { colors, radius } from '../shared/theme'
-import { useResultsStore, type Attempt, type ResultEntry } from '../features/results/model/resultsStore'
+import {
+  useResultsStore,
+  type Attempt,
+  type ResultEntry,
+} from '../features/results/model/resultsStore'
 import { MOCK_SCENARIOS } from '../features/scenarios/model/mockScenarios'
 import { getHistory } from '../shared/api/client'
 import { ensureUserId } from '../shared/api/storage'
@@ -33,9 +37,10 @@ export default function ProgressPage() {
   const navigate = useNavigate()
   const localBest = useResultsStore((s) => s.best)
   const localAttempts = useResultsStore((s) => s.attempts)
-  const [remote, setRemote] = useState<{ best: Record<string, ResultEntry>; attempts: Attempt[] } | null>(
-    null,
-  )
+  const [remote, setRemote] = useState<{
+    best: Record<string, ResultEntry>
+    attempts: Attempt[]
+  } | null>(null)
 
   // Пытаемся получить историю с бэка (он сохраняет результат сам);
   // если бэк недоступен — остаёмся на локальных данных.
@@ -141,17 +146,30 @@ export default function ProgressPage() {
                       padding: 16,
                     }}
                   >
-                    <div style={{ fontWeight: 700, fontSize: 15, color: colors.textMain, marginBottom: 12 }}>
+                    <div
+                      style={{
+                        fontWeight: 700,
+                        fontSize: 15,
+                        color: colors.textMain,
+                        marginBottom: 12,
+                      }}
+                    >
                       {ROLE_LABELS[stat.role]}
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div
+                      style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}
+                    >
                       <span style={{ color: colors.textSecondary, fontSize: 13 }}>Попыток</span>
                       <span style={{ color: colors.textMain, fontWeight: 600, fontSize: 13 }}>
                         {stat.count}
                       </span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <span style={{ color: colors.textSecondary, fontSize: 13 }}>Лучший результат</span>
+                    <div
+                      style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}
+                    >
+                      <span style={{ color: colors.textSecondary, fontSize: 13 }}>
+                        Лучший результат
+                      </span>
                       <span
                         style={{
                           color: scoreColor(stat.best),
@@ -173,7 +191,9 @@ export default function ProgressPage() {
               </div>
             )}
 
-            <h2 style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 700, color: colors.textMain }}>
+            <h2
+              style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 700, color: colors.textMain }}
+            >
               По сценариям
             </h2>
             <div style={{ marginBottom: 28 }}>
@@ -207,7 +227,8 @@ export default function ProgressPage() {
                         {scenario.title}
                       </div>
                       <div style={{ color: colors.textSecondary, fontSize: 12 }}>
-                        {ROLE_LABELS[scenario.role]} · {count} {count === 1 ? 'попытка' : count < 5 ? 'попытки' : 'попыток'}
+                        {ROLE_LABELS[scenario.role]} · {count}{' '}
+                        {count === 1 ? 'попытка' : count < 5 ? 'попытки' : 'попыток'}
                       </div>
                     </div>
                     {result ? (
@@ -249,7 +270,9 @@ export default function ProgressPage() {
               })}
             </div>
 
-            <h2 style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 700, color: colors.textMain }}>
+            <h2
+              style={{ margin: '0 0 12px', fontSize: 18, fontWeight: 700, color: colors.textMain }}
+            >
               История попыток
             </h2>
             <div>
