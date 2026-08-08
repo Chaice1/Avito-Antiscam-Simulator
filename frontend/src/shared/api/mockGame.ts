@@ -1,10 +1,4 @@
-import type {
-  GameFinal,
-  GameOption,
-  GameStartResponse,
-  GameStepResponse,
-  GameTag,
-} from './types'
+import type { GameFinal, GameOption, GameStartResponse, GameStepResponse, GameTag } from './types'
 
 const Q1 =
   'Привет! Телефон ещё свободен. Чтобы забронировать, переведи аванс 5000₽ на карту — сразу отправлю доставку'
