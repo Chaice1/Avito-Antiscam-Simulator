@@ -3,30 +3,31 @@ export interface RegisterRequest {
 }
 
 export interface RegisterResponse {
-  id: string
-  username: string
-  created_at: string
+  user_id: string
 }
 
-export interface SaveGameRequest {
+export interface SaveTrainingRequest {
   user_id: string
   scenario_id: string
-  scenario_description: string
-  risk_level: string
+  total_risk: number
+  final_grade: string
+  mistakes: GameMistake[]
 }
 
-export interface SaveGameResponse {
-  message: string
+export interface SaveTrainingResponse {
+  message?: string
 }
 
 export interface HistoryItem {
   scenario_id: string
-  scenario_description: string
-  risk_level: string
+  total_risk: number
+  final_grade: string
+  mistakes: GameMistake[]
   created_at: string
 }
 
 export interface HistoryResponse {
+  user_id: string
   history: HistoryItem[]
 }
 
@@ -75,7 +76,7 @@ export interface GameStepRequest {
 }
 
 export interface ScenarioSummary {
-  id: string
+  scenario_id: string
   title: string
   role: 'buyer' | 'seller'
 }

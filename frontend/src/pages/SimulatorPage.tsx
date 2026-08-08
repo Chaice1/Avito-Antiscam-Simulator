@@ -10,9 +10,9 @@ import {
 } from '@ant-design/icons'
 import { colors } from '../shared/theme'
 import { MOCK_SCENARIOS } from '../features/scenarios/model/mockScenarios'
-import { saveGame, startGame, stepGame } from '../shared/api/client'
+import { saveTraining, startGame, stepGame } from '../shared/api/client'
 import { mockGameStep, mockStartGame } from '../shared/api/mockGame'
-import { getOrCreateUserId } from '../shared/api/storage'
+import { ensureUserId, getUserId, getOrCreateUserId } from '../shared/api/storage'
 import type { GameFinal, GameOption, GameStepResponse } from '../shared/api/types'
 import FadeIn from '../shared/ui/FadeIn'
 import { useResultsStore } from '../features/results/model/resultsStore'
@@ -48,7 +48,7 @@ export default function SimulatorPage() {
     if (!sc) return
     let cancelled = false
     ;(async () => {
-      const userId = getOrCreateUserId()
+      const userId = await ensureUserId()
       try {
         const res = await startGame({ scenario_id: sc.id, user_id: userId })
         if (cancelled) return
@@ -151,11 +151,12 @@ export default function SimulatorPage() {
       grade: final.final_grade,
       createdAt: new Date().toISOString(),
     })
-    saveGame({
-      user_id: getOrCreateUserId(),
+    saveTraining({
+      user_id: getUserId() ?? getOrCreateUserId(),
       scenario_id: scenario.id,
-      scenario_description: scenario.description || scenario.title,
-      risk_level: final.final_grade,
+      total_risk: final.risk,
+      final_grade: final.final_grade,
+      mistakes: final.mistakes,
     }).catch(() => {})
     setTimeout(() => {
       navigate(`/result/${final.session_id}`, {

@@ -24,13 +24,13 @@ export default function TrainPage() {
     let cancelled = false
     ;(async () => {
       try {
-        const res = await getScenarios()
+        const res = await getScenarios(role ?? undefined)
         if (cancelled) return
         setScenarios(
           res.scenarios.map((s) => {
-            const extra = MOCK_SCENARIOS.find((m) => m.id === s.id)
+            const extra = MOCK_SCENARIOS.find((m) => m.id === s.scenario_id)
             return {
-              id: s.id,
+              id: s.scenario_id,
               title: s.title,
               role: s.role,
               productTitle: extra?.productTitle ?? s.title,
@@ -48,7 +48,7 @@ export default function TrainPage() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [role])
 
   if (!role) {
     return (

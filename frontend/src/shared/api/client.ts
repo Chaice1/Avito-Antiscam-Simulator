@@ -6,8 +6,8 @@ import type {
   HistoryResponse,
   RegisterRequest,
   RegisterResponse,
-  SaveGameRequest,
-  SaveGameResponse,
+  SaveTrainingRequest,
+  SaveTrainingResponse,
   ScenariosResponse,
 } from './types'
 
@@ -32,8 +32,8 @@ export function registerUser(username: string): Promise<RegisterResponse> {
   return request<RegisterResponse>('/register', { method: 'POST', body: JSON.stringify(body) })
 }
 
-export function saveGame(payload: SaveGameRequest): Promise<SaveGameResponse> {
-  return request<SaveGameResponse>('/games', { method: 'POST', body: JSON.stringify(payload) })
+export function saveTraining(payload: SaveTrainingRequest): Promise<SaveTrainingResponse> {
+  return request<SaveTrainingResponse>('/trainings', { method: 'POST', body: JSON.stringify(payload) })
 }
 
 export function getHistory(userId: string): Promise<HistoryResponse> {
@@ -51,6 +51,7 @@ export function stepGame(payload: GameStepRequest): Promise<GameStepResponse> {
   return request<GameStepResponse>('/game/step', { method: 'POST', body: JSON.stringify(payload) })
 }
 
-export function getScenarios(): Promise<ScenariosResponse> {
-  return request<ScenariosResponse>('/scenarios')
+export function getScenarios(role?: 'buyer' | 'seller'): Promise<ScenariosResponse> {
+  const query = role ? `?role=${role}` : ''
+  return request<ScenariosResponse>(`/scenarios${query}`)
 }
