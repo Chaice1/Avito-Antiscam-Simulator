@@ -1,27 +1,31 @@
 package simulatordomain
 
 type Session struct {
-	SessionID       string
-	ScenarioID      string
-	IsOver          bool
-	UserID          string
-	TotalRisk       int32
-	NodeID          string
-	CurrentMistakes []Mistake
+	SessionID  string
+	ScenarioID string
+	IsOver     bool
+	UserID     string
+	TotalRisk  int32
+	NodeID     string
+	Tags       []Tag
 }
 
-type Mistake struct {
-	Question   string
-	Answer     string
-	MistakeTag string
+type Tag struct {
+	Question string
+	Answer   string
+	TagID    string
 }
 
 type Graph struct {
-	ScenarioID  string
-	Title       string
-	Role        string
+	Scenario    Scenario
 	StartNodeID string
 	Nodes       map[string]Node
+}
+
+type Scenario struct {
+	Title      string
+	Role       string
+	ScenarioID string
 }
 
 type Node struct {
@@ -33,6 +37,6 @@ type Option struct {
 	ID         string
 	Text       string
 	Risk       int32
-	MistakeTag string
+	TagID      string
 	NextNodeID string
 }
