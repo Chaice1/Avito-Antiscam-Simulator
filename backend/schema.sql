@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS training_results (
     scenario_id VARCHAR(100) NOT NULL,
     total_risk INT NOT NULL,
     final_grade VARCHAR(50) NOT NULL,
-    mistakes JSONB,
+    tags JSONB,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 

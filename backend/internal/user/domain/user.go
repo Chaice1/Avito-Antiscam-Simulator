@@ -13,7 +13,7 @@ type User struct {
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 }
 
-type Mistake struct {
+type Tag struct {
 	Question    string `json:"question"`
 	Answer      string `json:"answer"`
 	Explanation string `json:"explanation"`
@@ -25,7 +25,7 @@ type TrainingResult struct {
 	ScenarioID string    `json:"scenario_id" db:"scenario_id"`
 	TotalRisk  int32     `json:"total_risk" db:"total_risk"`
 	FinalGrade string    `json:"final_grade" db:"final_grade"`
-	Mistakes   []Mistake `json:"mistakes" db:"mistakes"`
+	Tags       []Tag     `json:"tags" db:"tags"`
 	CreatedAt  time.Time `json:"created_at" db:"created_at"`
 }
 
@@ -33,7 +33,7 @@ type TrainingHistoryItem struct {
 	ScenarioID string    `json:"scenario_id" db:"scenario_id"`
 	TotalRisk  int32     `json:"total_risk" db:"total_risk"`
 	FinalGrade string    `json:"final_grade" db:"final_grade"`
-	Mistakes   []Mistake `json:"mistakes" db:"mistakes"`
+	Tags       []Tag     `json:"tags" db:"tags"`
 	CreatedAt  time.Time `json:"created_at" db:"created_at"`
 }
 

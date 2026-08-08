@@ -25,12 +25,12 @@ func (r *UserRepository) Create(ctx context.Context, user userdomain.User) error
 }
 
 func (r *UserRepository) SaveTrainingResult(ctx context.Context, result *userdomain.TrainingResult) error {
-	mistakesJSON, err := json.Marshal(result.Mistakes)
+	tagsJSON, err := json.Marshal(result.Tags)
 	if err != nil {
 		return err
 	}
-	query := `INSERT INTO training_results (user_id, scenario_id, total_risk, final_grade, mistakes) VALUES ($1, $2, $3, $4, $5)`
-	_, err = r.pool.Exec(ctx, query, result.UserID, result.ScenarioID, result.TotalRisk, result.FinalGrade, mistakesJSON)
+	query := `INSERT INTO training_results (user_id, scenario_id, total_risk, final_grade, tags) VALUES ($1, $2, $3, $4, $5)`
+	_, err = r.pool.Exec(ctx, query, result.UserID, result.ScenarioID, result.TotalRisk, result.FinalGrade, tagsJSON)
 	return err
 }
 
@@ -50,7 +50,7 @@ func (r *UserRepository) GetHistory(ctx context.Context, userID string) ([]userd
 		return nil, userdomain.ErrUserNotFound
 	}
 
-	query := `SELECT scenario_id, total_risk, final_grade, mistakes, created_at FROM training_results WHERE user_id = $1 ORDER BY created_at DESC`
+	query := `SELECT scenario_id, total_risk, final_grade, tags, created_at FROM training_results WHERE user_id = $1 ORDER BY created_at DESC`
 	rows, err := r.pool.Query(ctx, query, userID)
 	if err != nil {
 		return nil, err
@@ -60,12 +60,12 @@ func (r *UserRepository) GetHistory(ctx context.Context, userID string) ([]userd
 	var history []userdomain.TrainingHistoryItem
 	for rows.Next() {
 		var item userdomain.TrainingHistoryItem
-		var mistakesBytes []byte
-		if err := rows.Scan(&item.ScenarioID, &item.TotalRisk, &item.FinalGrade, &mistakesBytes, &item.CreatedAt); err != nil {
+		var tagsBytes []byte
+		if err := rows.Scan(&item.ScenarioID, &item.TotalRisk, &item.FinalGrade, &tagsBytes, &item.CreatedAt); err != nil {
 			return nil, err
 		}
-		if mistakesBytes != nil {
-			_ = json.Unmarshal(mistakesBytes, &item.Mistakes)
+		if tagsBytes != nil {
+			_ = json.Unmarshal(tagsBytes, &item.Tags)
 		}
 		history = append(history, item)
 	}
