@@ -1,5 +1,6 @@
 package main
 
+// application1
 import (
 	"antiscam-simulator/config"
 	localstorage "antiscam-simulator/internal/simulator/adapter/localStorage"
@@ -38,9 +39,9 @@ func runApp() {
 
 	SimulatorUsecase := simulatorUsecase.NewUsecaseSimulator(redis, storageScenarios)
 
-	simulatorController := simulatorController.NewSimulatorController(SimulatorUsecase, storageScenarios)
+	simCtrl := simulatorController.NewSimulatorController(SimulatorUsecase, storageScenarios)
 
-	mux := rest.AddRoutes(simulatorController)
+	mux := rest.AddRoutes(simCtrl)
 
 	httpSrv := &http.Server{
 		Addr:    cfg.HTTP.Address,
