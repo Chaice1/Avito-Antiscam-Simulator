@@ -6,8 +6,6 @@ import type {
   HistoryResponse,
   RegisterRequest,
   RegisterResponse,
-  SaveTrainingRequest,
-  SaveTrainingResponse,
   ScenariosResponse,
 } from './types'
 
@@ -30,10 +28,6 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export function registerUser(username: string): Promise<RegisterResponse> {
   const body: RegisterRequest = { username }
   return request<RegisterResponse>('/register', { method: 'POST', body: JSON.stringify(body) })
-}
-
-export function saveTraining(payload: SaveTrainingRequest): Promise<SaveTrainingResponse> {
-  return request<SaveTrainingResponse>('/trainings', { method: 'POST', body: JSON.stringify(payload) })
 }
 
 export function getHistory(userId: string): Promise<HistoryResponse> {

@@ -6,18 +6,6 @@ export interface RegisterResponse {
   user_id: string
 }
 
-export interface SaveTrainingRequest {
-  user_id: string
-  scenario_id: string
-  total_risk: number
-  final_grade: string
-  tags: GameTag[]
-}
-
-export interface SaveTrainingResponse {
-  message?: string
-}
-
 export interface HistoryItem {
   scenario_id: string
   total_risk: number

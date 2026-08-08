@@ -1,9 +1,12 @@
+import { useEffect, useState } from 'react'
 import { Button, Empty } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import { RiseOutlined } from '@ant-design/icons'
 import { colors, radius } from '../shared/theme'
-import { useResultsStore, type Attempt } from '../features/results/model/resultsStore'
+import { useResultsStore, type Attempt, type ResultEntry } from '../features/results/model/resultsStore'
 import { MOCK_SCENARIOS } from '../features/scenarios/model/mockScenarios'
+import { getHistory } from '../shared/api/client'
+import { ensureUserId } from '../shared/api/storage'
 import FadeIn from '../shared/ui/FadeIn'
 
 const ROLE_LABELS: Record<string, string> = {
@@ -28,8 +31,48 @@ function formatDate(iso: string) {
 
 export default function ProgressPage() {
   const navigate = useNavigate()
-  const best = useResultsStore((s) => s.best)
-  const attempts = useResultsStore((s) => s.attempts)
+  const localBest = useResultsStore((s) => s.best)
+  const localAttempts = useResultsStore((s) => s.attempts)
+  const [remote, setRemote] = useState<{ best: Record<string, ResultEntry>; attempts: Attempt[] } | null>(
+    null,
+  )
+
+  // Пытаемся получить историю с бэка (он сохраняет результат сам);
+  // если бэк недоступен — остаёмся на локальных данных.
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const userId = await ensureUserId()
+        const res = await getHistory(userId)
+        if (cancelled) return
+        const attempts: Attempt[] = res.history.map((h) => {
+          const sc = MOCK_SCENARIOS.find((m) => m.id === h.scenario_id)
+          const score = Math.max(0, 100 - Math.min(100, h.total_risk))
+          return {
+            scenarioId: h.scenario_id,
+            scenarioTitle: sc?.title ?? h.scenario_id,
+            score,
+            grade: h.final_grade,
+            createdAt: h.created_at,
+          }
+        })
+        const best: Record<string, ResultEntry> = {}
+        for (const a of attempts) {
+          if (!best[a.scenarioId] || best[a.scenarioId].score < a.score) best[a.scenarioId] = a
+        }
+        setRemote({ best, attempts: attempts.slice(0, 50) })
+      } catch {
+        // бэк недоступен — молча остаёмся на локальных данных
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const best = remote ? remote.best : localBest
+  const attempts = remote ? remote.attempts : localAttempts
 
   const roleStats = ['buyer', 'seller']
     .map((role) => {
