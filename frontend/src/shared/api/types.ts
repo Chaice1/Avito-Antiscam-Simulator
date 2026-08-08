@@ -11,7 +11,7 @@ export interface SaveTrainingRequest {
   scenario_id: string
   total_risk: number
   final_grade: string
-  mistakes: GameMistake[]
+  mistakes: GameTag[]
 }
 
 export interface SaveTrainingResponse {
@@ -22,7 +22,7 @@ export interface HistoryItem {
   scenario_id: string
   total_risk: number
   final_grade: string
-  mistakes: GameMistake[]
+  mistakes: GameTag[]
   created_at: string
 }
 
@@ -54,7 +54,7 @@ export interface GameStartResponse extends GameContinue {
   role: 'buyer' | 'seller'
 }
 
-export interface GameMistake {
+export interface GameTag {
   question: string
   answer: string
   explanation: string
@@ -65,7 +65,7 @@ export interface GameFinal {
   risk: number
   is_over: true
   final_grade: string
-  mistakes: GameMistake[]
+  tags: GameTag[]
 }
 
 export type GameStepResponse = GameContinue | GameFinal

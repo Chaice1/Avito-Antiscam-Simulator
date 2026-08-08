@@ -1,9 +1,9 @@
 import type {
   GameFinal,
-  GameMistake,
   GameOption,
   GameStartResponse,
   GameStepResponse,
+  GameTag,
 } from './types'
 
 const Q1 =
@@ -35,7 +35,7 @@ interface MockSession {
 
 const sessions = new Map<string, MockSession>()
 
-function toMistakes(choices: MockSession['choices']): GameMistake[] {
+function toMistakes(choices: MockSession['choices']): GameTag[] {
   return choices
     .filter((c) => RISK_EXPLANATIONS[c.answerId])
     .map((c) => ({
@@ -107,7 +107,7 @@ export async function mockGameStep(sessionId: string, answerId: string): Promise
       risk: session.risk,
       is_over: true,
       final_grade: 'Жертва мошенничества',
-      mistakes: toMistakes(session.choices),
+      tags: toMistakes(session.choices),
     }
     return final
   }
@@ -117,7 +117,7 @@ export async function mockGameStep(sessionId: string, answerId: string): Promise
     risk: session.risk,
     is_over: true,
     final_grade: session.risk >= 70 ? 'Чуть не попался' : 'Сделка безопасна',
-    mistakes: toMistakes(session.choices),
+    tags: toMistakes(session.choices),
   }
   return final
 }

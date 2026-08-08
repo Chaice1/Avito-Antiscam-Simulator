@@ -57,13 +57,13 @@ export default function ResultPage() {
           <div style={{ fontWeight: 700, fontSize: 40, color: colors.textMain }}>{score}%</div>
         </div>
 
-        {final.mistakes.length > 0 ? (
+        {final.tags.length > 0 ? (
           <div style={{ marginBottom: 24 }}>
             <h2 style={{ fontSize: 18, fontWeight: 700, color: colors.textMain, marginBottom: 12 }}>
               Твои ошибки
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {final.mistakes.map((mistake, i) => (
+              {final.tags.map((mistake, i) => (
                 <div
                   key={i}
                   style={{

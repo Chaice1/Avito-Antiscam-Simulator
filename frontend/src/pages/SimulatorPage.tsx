@@ -156,7 +156,7 @@ export default function SimulatorPage() {
       scenario_id: scenario.id,
       total_risk: final.risk,
       final_grade: final.final_grade,
-      mistakes: final.mistakes,
+      mistakes: final.tags,
     }).catch(() => {})
     setTimeout(() => {
       navigate(`/result/${final.session_id}`, {
