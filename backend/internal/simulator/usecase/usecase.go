@@ -15,6 +15,7 @@ type Redis interface {
 
 type StorageGraphScenarios interface {
 	GetNode(string, string) (simulatordomain.Node, error)
+	GetScenarios() []*simulatordomain.Scenario
 }
 
 type UsecaseSimulator struct {
@@ -29,6 +30,10 @@ func NewUsecaseSimulator(r Redis, s StorageGraphScenarios) *UsecaseSimulator {
 	}
 }
 
+func (us *UsecaseSimulator) GetScenarios() []*simulatordomain.Scenario {
+	return us.s.GetScenarios()
+}
+
 func (us *UsecaseSimulator) StartGame(ctx context.Context, userID, scenarioID string) (string, *simulatordomain.Node, error) {
 
 	nodeID, err := us.s.GetNode(scenarioID, "")
@@ -40,13 +45,13 @@ func (us *UsecaseSimulator) StartGame(ctx context.Context, userID, scenarioID st
 	sessionID := uuid.New()
 
 	session := simulatordomain.Session{
-		SessionID:       sessionID.String(),
-		ScenarioID:      scenarioID,
-		UserID:          userID,
-		IsOver:          false,
-		TotalRisk:       risk,
-		NodeID:          "",
-		CurrentMistakes: []simulatordomain.Mistake{},
+		SessionID:  sessionID.String(),
+		ScenarioID: scenarioID,
+		UserID:     userID,
+		IsOver:     false,
+		TotalRisk:  risk,
+		NodeID:     "",
+		Tags:       []simulatordomain.Tag{},
 	}
 
 	err = us.r.SetSession(ctx, sessionID.String(), &session)
@@ -90,13 +95,11 @@ func (us *UsecaseSimulator) ProcessStep(ctx context.Context, answerID, sessionID
 		return &currentNode, session, simulatordomain.ErrUnknownAnswer
 	}
 
-	if option.Risk > 0 {
-		session.CurrentMistakes = append(session.CurrentMistakes, simulatordomain.Mistake{
-			Question:   currentNode.Question,
-			Answer:     option.Text,
-			MistakeTag: option.MistakeTag,
-		})
-	}
+	session.Tags = append(session.Tags, simulatordomain.Tag{
+		Question: currentNode.Question,
+		Answer:   option.Text,
+		TagID:    option.TagID,
+	})
 
 	session.TotalRisk += option.Risk
 
