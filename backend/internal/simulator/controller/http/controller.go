@@ -139,7 +139,7 @@ func (sc *SimulatorController) ProcessStep() http.HandlerFunc {
 					UserTags[i] = userTag
 				}
 
-				err := sc.us.SaveTrainingResult(r.Context(), &userdomain.TrainingResult{
+				err = sc.us.SaveTrainingResult(r.Context(), &userdomain.TrainingResult{
 					SessionID:  session.SessionID,
 					ScenarioID: session.ScenarioID,
 					UserID:     session.UserID,
@@ -149,7 +149,7 @@ func (sc *SimulatorController) ProcessStep() http.HandlerFunc {
 				})
 
 				if err != nil {
-					slog.Error("failed to save training Result")
+					slog.Error("failed to save training Result", "error", err)
 				}
 
 				resp = simulatordto.ProcessStepResponse{
