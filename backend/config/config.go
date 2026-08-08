@@ -8,10 +8,15 @@ import (
 )
 
 type Config struct {
-	AppName Application `yaml:"app"`
-	HTTP    HTTPServer  `yaml:"http"`
-	Cache   Cache       `yaml:"cache"`
-	Redis   Redis       `yaml:"redis"`
+	AppName  Application `yaml:"app"`
+	HTTP     HTTPServer  `yaml:"http"`
+	Cache    Cache       `yaml:"cache"`
+	Redis    Redis       `yaml:"redis"`
+	Database Database    `yaml:"db"`
+}
+
+type Database struct {
+	DSN string `yaml:"dsn" env:"DB_DSN"`
 }
 
 type Application struct {

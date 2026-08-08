@@ -1,23 +1,60 @@
 version: '3.8'
 
 services:
-  app:
+  backend:
     build:
-      context: backend
+      context: ./backend
       dockerfile: Dockerfile
+    container_name: antiscam-backend
     ports:
       - "8080:8080"
-    environment:
-      - APP_NAME=Avito Antiscam Trainer
-      - REDIS_ADDRESS=redis:6379
-      - HTTP_ADDRESS=:8080
-      - TTL=15 
     depends_on:
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: on-failure
+    networks:
+      - app
+    environment:
+      APP_NAME: "Avito Antiscam Trainer"
+      REDIS_ADDRESS: "redis:6379"
+      HTTP_ADDRESS: ":8080"
+      TTL: "15"
+      DB_DSN: "postgres://antiscam_user:antiscam_password@db:5432/antiscam_db?sslmode=disable"
     volumes:
       - ./backend/scenarios:/app/scenarios
 
   redis:
     image: redis:7-alpine
+    container_name: antiscam-redis
     ports:
-      - "6379-6379"
+      - "6379:6379"
+    networks:
+      - app
+
+  db:
+    image: postgres:15-alpine
+    container_name: antiscam-db
+    environment:
+      POSTGRES_USER: antiscam_user
+      POSTGRES_PASSWORD: antiscam_password
+      POSTGRES_DB: antiscam_db
+    networks:
+      - app
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./backend/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U antiscam_user -d antiscam_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  app:
+
+volumes:
+  postgres-data:

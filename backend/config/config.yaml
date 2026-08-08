@@ -10,3 +10,6 @@ cache:
 
 redis:
   address: ":6379"
+
+db:
+  dsn: "postgres://antiscam_user:antiscam_password@localhost:5432/antiscam_db?sslmode=disable"

@@ -1,27 +1,41 @@
 package main
 
-// application1
 import (
+	"context"
+	"fmt"
+	"log/slog"
+	"os"
+	"os/signal"
+
 	"antiscam-simulator/config"
 	localstorage "antiscam-simulator/internal/simulator/adapter/localStorage"
 	redisDB "antiscam-simulator/internal/simulator/adapter/redis"
 	simulatorController "antiscam-simulator/internal/simulator/controller/http"
 	simulatorUsecase "antiscam-simulator/internal/simulator/usecase"
 	"antiscam-simulator/internal/transport/rest"
-	"context"
-	"log/slog"
-	"net/http"
-	"os"
-	"os/signal"
-	"time"
+	"antiscam-simulator/internal/user/adapter/postgres"
+	usercontroller "antiscam-simulator/internal/user/controller/http"
+	userusecase "antiscam-simulator/internal/user/usecase"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func runApp() {
-
+func runApp() error {
 	cfg := config.MustLoad()
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
 	defer cancel()
+
+	pool, err := pgxpool.New(ctx, cfg.Database.DSN)
+	if err != nil {
+		return fmt.Errorf("failed to connect to database: %w", err)
+	}
+	defer pool.Close()
+
+	err = pool.Ping(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to ping database: %w", err)
+	}
 
 	redis := redisDB.NewRedisDB(int64(cfg.Cache.TTL), cfg.Redis.Address)
 
@@ -31,42 +45,32 @@ func runApp() {
 		"scenarios/seller_gpu.json",
 		"scenarios/tenant_flat.json",
 	})
-
 	if err != nil {
-		slog.Error("failed to load scenarios", "error", err)
-		return
+		return fmt.Errorf("failed to load scenarios: %w", err)
 	}
 
-	SimulatorUsecase := simulatorUsecase.NewUsecaseSimulator(redis, storageScenarios)
+	userRepo := postgres.NewUserRepository(pool)
 
-	simCtrl := simulatorController.NewSimulatorController(SimulatorUsecase, storageScenarios)
+	simUsecase := simulatorUsecase.NewUsecaseSimulator(redis, storageScenarios)
+	userSvc := userusecase.NewUsecaseUser(userRepo)
 
-	mux := rest.AddRoutes(simCtrl)
+	simCtrl := simulatorController.NewSimulatorController(simUsecase, storageScenarios)
+	userCtrl := usercontroller.NewUserController(userSvc)
 
-	httpSrv := &http.Server{
-		Addr:    cfg.HTTP.Address,
-		Handler: mux,
-	}
-	go func() {
+	server := rest.NewServer(cfg.HTTP.Address, userCtrl, simCtrl)
 
-		if err := httpSrv.ListenAndServe(); err != nil {
-			slog.Error("failed to listen http port", "error", err)
-			return
-		}
-	}()
-
-	<-ctx.Done()
-
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer shutdownCancel()
-
-	if err := httpSrv.Shutdown(shutdownCtx); err != nil {
-		slog.Error("server shutdown failed", "error", err)
-		return
+	slog.Info("Starting server on", "address", cfg.HTTP.Address)
+	if err := server.Run(ctx); err != nil {
+		return fmt.Errorf("server shutdown error: %w", err)
 	}
 
 	slog.Info("server stopped gracefully")
+	return nil
 }
+
 func main() {
-	runApp()
+	if err := runApp(); err != nil {
+		slog.Error("application startup failed", "error", err)
+		os.Exit(1)
+	}
 }
