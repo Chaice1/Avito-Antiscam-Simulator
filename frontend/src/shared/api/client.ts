@@ -1,9 +1,14 @@
 import type {
+  GameStartRequest,
+  GameStartResponse,
+  GameStepRequest,
+  GameStepResponse,
   HistoryResponse,
   RegisterRequest,
   RegisterResponse,
   SaveGameRequest,
   SaveGameResponse,
+  ScenariosResponse,
 } from './types'
 
 const BASE_URL = '/api/v1'
@@ -33,4 +38,19 @@ export function saveGame(payload: SaveGameRequest): Promise<SaveGameResponse> {
 
 export function getHistory(userId: string): Promise<HistoryResponse> {
   return request<HistoryResponse>(`/users/${userId}/history`)
+}
+
+export function startGame(payload: GameStartRequest): Promise<GameStartResponse> {
+  return request<GameStartResponse>('/game/start', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function stepGame(payload: GameStepRequest): Promise<GameStepResponse> {
+  return request<GameStepResponse>('/game/step', { method: 'POST', body: JSON.stringify(payload) })
+}
+
+export function getScenarios(): Promise<ScenariosResponse> {
+  return request<ScenariosResponse>('/scenarios')
 }

@@ -4,6 +4,8 @@ import Layout from './app/Layout'
 import LandingPage from './pages/LandingPage'
 import TrainPage from './pages/TrainPage'
 import SimulatorPage from './pages/SimulatorPage'
+import ResultPage from './pages/ResultPage'
+import ProgressPage from './pages/ProgressPage'
 import { colors } from './shared/theme'
 
 export default function App() {
@@ -21,10 +23,12 @@ export default function App() {
         }}
       >
         <Routes>
+          <Route path="/train/:id" element={<SimulatorPage />} />
           <Route element={<Layout />}>
             <Route path="/" element={<LandingPage />} />
             <Route path="/train" element={<TrainPage />} />
-            <Route path="/train/:id" element={<SimulatorPage />} />
+            <Route path="/progress" element={<ProgressPage />} />
+            <Route path="/result/:attemptId" element={<ResultPage />} />
           </Route>
         </Routes>
       </ConfigProvider>
