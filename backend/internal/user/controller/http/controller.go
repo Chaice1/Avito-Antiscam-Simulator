@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"antiscam-simulator/internal/user/domain"
+	"antiscam-simulator/internal/user/dto"
 )
 
 type UserUsecase interface {
@@ -23,25 +24,13 @@ func NewUserController(usecase UserUsecase) *UserController {
 	return &UserController{usecase: usecase}
 }
 
-type RegisterRequest struct {
-	Username string `json:"username"`
-}
-
-type RegisterResponse struct {
-	UserID string `json:"user_id"`
-}
-
-type ErrorResponse struct {
-	Error string `json:"error"`
-}
-
 func (c *UserController) Register(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		c.writeError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
 
-	var req RegisterRequest
+	var req userdto.RegisterRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		c.writeError(w, http.StatusBadRequest, "invalid request body")
 		return
@@ -60,7 +49,7 @@ func (c *UserController) Register(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	_ = json.NewEncoder(w).Encode(RegisterResponse{UserID: userID})
+	_ = json.NewEncoder(w).Encode(userdto.RegisterResponse{UserID: userID})
 }
 
 func (c *UserController) SaveTrainingResult(w http.ResponseWriter, r *http.Request) {
@@ -69,7 +58,7 @@ func (c *UserController) SaveTrainingResult(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	var req userdomain.TrainingResult
+	var req userdto.SaveTrainingRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		c.writeError(w, http.StatusBadRequest, "invalid request body")
 		return
@@ -88,7 +77,9 @@ func (c *UserController) SaveTrainingResult(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err := c.usecase.SaveTrainingResult(r.Context(), &req)
+	domainResult := req.MapToDomain()
+
+	err := c.usecase.SaveTrainingResult(r.Context(), domainResult)
 	if err != nil {
 		c.writeError(w, http.StatusInternalServerError, "failed to save training results")
 		return
@@ -124,16 +115,18 @@ func (c *UserController) GetHistory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	dtoHistory := userdto.MapHistoryFromDomain(history)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(userdomain.UserHistoryResponse{
+	_ = json.NewEncoder(w).Encode(userdto.UserHistoryResponse{
 		UserID:  userID,
-		History: history,
+		History: dtoHistory,
 	})
 }
 
 func (c *UserController) writeError(w http.ResponseWriter, status int, msg string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(ErrorResponse{Error: msg})
+	_ = json.NewEncoder(w).Encode(userdto.ErrorResponse{Error: msg})
 }
