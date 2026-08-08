@@ -13,6 +13,7 @@ import (
 type SimulatorUsecase interface {
 	StartGame(context.Context, string, string) (string, *simulatordomain.Node, error)
 	ProcessStep(context.Context, string, string) (*simulatordomain.Node, *simulatordomain.Session, error)
+	GetScenarios() []*simulatordomain.Scenario
 }
 
 type LocalStorage interface {
@@ -108,26 +109,26 @@ func (sc *SimulatorController) ProcessStep() http.HandlerFunc {
 					FinalGrade = "Жертва мошенничества"
 				}
 
-				Mistakes := make([]simulatordto.Mistake, len(session.CurrentMistakes))
+				Tags := make([]simulatordto.Tag, len(session.Tags))
 
-				for i, mistake := range session.CurrentMistakes {
+				for i, mistake := range session.Tags {
 
-					respMistake := simulatordto.Mistake{
+					respMistake := simulatordto.Tag{
 						Question: mistake.Question,
 						Answer:   mistake.Answer,
 					}
-					if val, ok := simulatordomain.MistakeDictionary[mistake.MistakeTag]; ok {
+					if val, ok := simulatordomain.TagDictionary[mistake.TagID]; ok {
 						respMistake.Explanation = val
 					}
 
-					Mistakes[i] = respMistake
+					Tags[i] = respMistake
 				}
 
 				resp = simulatordto.ProcessStepResponse{
 					SessionID:  session.SessionID,
 					Risk:       session.TotalRisk,
 					FinalGrade: FinalGrade,
-					Mistakes:   Mistakes,
+					Tags:       Tags,
 					IsOver:     session.IsOver,
 					Question:   node.Question,
 				}
@@ -167,6 +168,29 @@ func (sc *SimulatorController) ProcessStep() http.HandlerFunc {
 
 		writeJSON(w, http.StatusOK, resp)
 
+	}
+}
+
+func (sc *SimulatorController) GetScenarios() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		role := r.URL.Query().Get("role")
+
+		scenarios := sc.su.GetScenarios()
+
+		resp := simulatordto.GetScenariosResponse{
+			Scenarios: make([]*simulatordto.Scenario, 0, len(scenarios)),
+		}
+
+		for _, scenario := range scenarios {
+			if scenario.Role == role || role == "" {
+				resp.Scenarios = append(resp.Scenarios, &simulatordto.Scenario{
+					ScenarioID: scenario.ScenarioID,
+					Role:       scenario.Role,
+					Title:      scenario.Title,
+				})
+			}
+		}
+		writeJSON(w, http.StatusOK, resp)
 	}
 }
 
