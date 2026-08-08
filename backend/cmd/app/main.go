@@ -54,7 +54,7 @@ func runApp() error {
 	simUsecase := simulatorUsecase.NewUsecaseSimulator(redis, storageScenarios)
 	userSvc := userusecase.NewUsecaseUser(userRepo)
 
-	simCtrl := simulatorController.NewSimulatorController(simUsecase, storageScenarios)
+	simCtrl := simulatorController.NewSimulatorController(simUsecase, storageScenarios, userRepo)
 	userCtrl := usercontroller.NewUserController(userSvc)
 
 	server := rest.NewServer(cfg.HTTP.Address, userCtrl, simCtrl)
