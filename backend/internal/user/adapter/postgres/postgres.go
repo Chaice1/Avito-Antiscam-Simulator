@@ -29,8 +29,8 @@ func (r *UserRepository) SaveTrainingResult(ctx context.Context, result *userdom
 	if err != nil {
 		return err
 	}
-	query := `INSERT INTO training_results (user_id, scenario_id, total_risk, final_grade, tags) VALUES ($1, $2, $3, $4, $5)`
-	_, err = r.pool.Exec(ctx, query, result.UserID, result.ScenarioID, result.TotalRisk, result.FinalGrade, tagsJSON)
+	query := `INSERT INTO training_results (session_id, user_id, scenario_id, total_risk, final_grade, tags) VALUES ($1, $2, $3, $4, $5, $6)`
+	_, err = r.pool.Exec(ctx, query, result.SessionID, result.UserID, result.ScenarioID, result.TotalRisk, result.FinalGrade, tagsJSON)
 	return err
 }
 
@@ -50,7 +50,7 @@ func (r *UserRepository) GetHistory(ctx context.Context, userID string) ([]userd
 		return nil, userdomain.ErrUserNotFound
 	}
 
-	query := `SELECT scenario_id, total_risk, final_grade, tags, created_at FROM training_results WHERE user_id = $1 ORDER BY created_at DESC`
+	query := `SELECT session_id, scenario_id, total_risk, final_grade, tags, created_at FROM training_results WHERE user_id = $1 ORDER BY created_at DESC`
 	rows, err := r.pool.Query(ctx, query, userID)
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (r *UserRepository) GetHistory(ctx context.Context, userID string) ([]userd
 	for rows.Next() {
 		var item userdomain.TrainingHistoryItem
 		var tagsBytes []byte
-		if err := rows.Scan(&item.ScenarioID, &item.TotalRisk, &item.FinalGrade, &tagsBytes, &item.CreatedAt); err != nil {
+		if err := rows.Scan(&item.SessionID, &item.ScenarioID, &item.TotalRisk, &item.FinalGrade, &tagsBytes, &item.CreatedAt); err != nil {
 			return nil, err
 		}
 		if tagsBytes != nil {

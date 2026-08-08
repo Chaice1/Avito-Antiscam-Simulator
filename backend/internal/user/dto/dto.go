@@ -25,6 +25,7 @@ type TagDto struct {
 }
 
 type SaveTrainingRequest struct {
+	SessionID  string   `json:"session_id"`
 	UserID     string   `json:"user_id"`
 	ScenarioID string   `json:"scenario_id"`
 	TotalRisk  int32    `json:"total_risk"`
@@ -33,6 +34,7 @@ type SaveTrainingRequest struct {
 }
 
 type TrainingHistoryItemDto struct {
+	SessionID  string    `json:"session_id"`
 	ScenarioID string    `json:"scenario_id"`
 	TotalRisk  int32     `json:"total_risk"`
 	FinalGrade string    `json:"final_grade"`
@@ -56,6 +58,7 @@ func (r *SaveTrainingRequest) MapToDomain() *userdomain.TrainingResult {
 	}
 
 	return &userdomain.TrainingResult{
+		SessionID:  r.SessionID,
 		UserID:     r.UserID,
 		ScenarioID: r.ScenarioID,
 		TotalRisk:  r.TotalRisk,
@@ -76,6 +79,7 @@ func MapHistoryFromDomain(items []userdomain.TrainingHistoryItem) []TrainingHist
 			})
 		}
 		dtoItems = append(dtoItems, TrainingHistoryItemDto{
+			SessionID:  item.SessionID,
 			ScenarioID: item.ScenarioID,
 			TotalRisk:  item.TotalRisk,
 			FinalGrade: item.FinalGrade,

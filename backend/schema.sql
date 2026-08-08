@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE TABLE IF NOT EXISTS training_results (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    session_id VARCHAR(100) UNIQUE NOT NULL,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     scenario_id VARCHAR(100) NOT NULL,
     total_risk INT NOT NULL,

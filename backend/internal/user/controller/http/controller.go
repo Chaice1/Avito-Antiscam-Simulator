@@ -64,6 +64,10 @@ func (c *UserController) SaveTrainingResult(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	if req.SessionID == "" {
+		c.writeError(w, http.StatusBadRequest, "session_id is required")
+		return
+	}
 	if req.UserID == "" {
 		c.writeError(w, http.StatusBadRequest, "user_id is required")
 		return

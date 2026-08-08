@@ -21,6 +21,7 @@ type Tag struct {
 
 type TrainingResult struct {
 	ID         string    `db:"id"`
+	SessionID  string    `db:"session_id"`
 	UserID     string    `db:"user_id"`
 	ScenarioID string    `db:"scenario_id"`
 	TotalRisk  int32     `db:"total_risk"`
@@ -30,6 +31,7 @@ type TrainingResult struct {
 }
 
 type TrainingHistoryItem struct {
+	SessionID  string    `db:"session_id"`
 	ScenarioID string    `db:"scenario_id"`
 	TotalRisk  int32     `db:"total_risk"`
 	FinalGrade string    `db:"final_grade"`
