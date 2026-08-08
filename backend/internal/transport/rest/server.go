@@ -9,18 +9,18 @@ import (
 	"syscall"
 	"time"
 
-	"antiscam-simulator/internal/user/controller"
+	"antiscam-simulator/internal/user/controller/http"
 )
 
 type Server struct {
 	httpServer *http.Server
 }
 
-func NewServer(port string, userHandler *controller.UserHandler) *Server {
+func NewServer(port string, userController *usercontroller.UserController) *Server {
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /api/v1/register", userHandler.Register)
-	mux.HandleFunc("POST /api/v1/games", userHandler.SaveGame)
-	mux.HandleFunc("GET /api/v1/users/{user_id}/history", userHandler.GetHistory)
+	mux.HandleFunc("POST /api/v1/register", userController.Register)
+	mux.HandleFunc("POST /api/v1/trainings", userController.SaveTrainingResult)
+	mux.HandleFunc("GET /api/v1/users/{user_id}/history", userController.GetHistory)
 
 	return &Server{
 		httpServer: &http.Server{

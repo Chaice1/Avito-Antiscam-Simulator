@@ -1,8 +1,6 @@
-package controller_test
+package usercontroller_test
 
 import (
-	"antiscam-simulator/internal/user/controller"
-	"antiscam-simulator/internal/user/model"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -10,28 +8,30 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"antiscam-simulator/internal/user/controller/http"
+	"antiscam-simulator/internal/user/domain"
 	"github.com/stretchr/testify/assert"
 )
 
-type mockUserServicer struct {
+type mockUserUsecase struct {
 	registerFunc   func(ctx context.Context, username string) (string, error)
-	saveGameFunc   func(ctx context.Context, game *model.GameSave) error
-	getHistoryFunc func(ctx context.Context, userID string) ([]model.GameHistoryItem, error)
+	saveGameFunc   func(ctx context.Context, result *userdomain.TrainingResult) error
+	getHistoryFunc func(ctx context.Context, userID string) ([]userdomain.TrainingHistoryItem, error)
 }
 
-func (m *mockUserServicer) Register(ctx context.Context, username string) (string, error) {
+func (m *mockUserUsecase) Register(ctx context.Context, username string) (string, error) {
 	return m.registerFunc(ctx, username)
 }
 
-func (m *mockUserServicer) SaveGame(ctx context.Context, game *model.GameSave) error {
-	return m.saveGameFunc(ctx, game)
+func (m *mockUserUsecase) SaveTrainingResult(ctx context.Context, result *userdomain.TrainingResult) error {
+	return m.saveGameFunc(ctx, result)
 }
 
-func (m *mockUserServicer) GetHistory(ctx context.Context, userID string) ([]model.GameHistoryItem, error) {
+func (m *mockUserUsecase) GetHistory(ctx context.Context, userID string) ([]userdomain.TrainingHistoryItem, error) {
 	return m.getHistoryFunc(ctx, userID)
 }
 
-func TestUserHandler_Register(t *testing.T) {
+func TestUserController_Register(t *testing.T) {
 	tests := []struct {
 		name         string
 		payload      map[string]interface{}
@@ -62,8 +62,8 @@ func TestUserHandler_Register(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc := &mockUserServicer{registerFunc: tt.mockRegister}
-			handler := controller.NewUserHandler(svc)
+			svc := &mockUserUsecase{registerFunc: tt.mockRegister}
+			handler := usercontroller.NewUserController(svc)
 
 			var body []byte
 			if tt.payload != nil {
@@ -79,26 +79,26 @@ func TestUserHandler_Register(t *testing.T) {
 	}
 }
 
-func TestUserHandler_GetHistory(t *testing.T) {
+func TestUserController_GetHistory(t *testing.T) {
 	tests := []struct {
 		name        string
 		pathUserID  string
-		mockHistory func(ctx context.Context, userID string) ([]model.GameHistoryItem, error)
+		mockHistory func(ctx context.Context, userID string) ([]userdomain.TrainingHistoryItem, error)
 		expectCode  int
 	}{
 		{
 			name:       "success",
 			pathUserID: "123",
-			mockHistory: func(_ context.Context, _ string) ([]model.GameHistoryItem, error) {
-				return []model.GameHistoryItem{{ScenarioID: "scen1"}}, nil
+			mockHistory: func(_ context.Context, _ string) ([]userdomain.TrainingHistoryItem, error) {
+				return []userdomain.TrainingHistoryItem{{ScenarioID: "scen1"}}, nil
 			},
 			expectCode: http.StatusOK,
 		},
 		{
 			name:       "user not found",
 			pathUserID: "404",
-			mockHistory: func(_ context.Context, _ string) ([]model.GameHistoryItem, error) {
-				return nil, model.ErrUserNotFound
+			mockHistory: func(_ context.Context, _ string) ([]userdomain.TrainingHistoryItem, error) {
+				return nil, userdomain.ErrUserNotFound
 			},
 			expectCode: http.StatusNotFound,
 		},
@@ -112,8 +112,8 @@ func TestUserHandler_GetHistory(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			svc := &mockUserServicer{getHistoryFunc: tt.mockHistory}
-			handler := controller.NewUserHandler(svc)
+			svc := &mockUserUsecase{getHistoryFunc: tt.mockHistory}
+			handler := usercontroller.NewUserController(svc)
 
 			req := httptest.NewRequest(http.MethodGet, "/api/v1/users/"+tt.pathUserID+"/history", http.NoBody)
 			if tt.pathUserID != "" {

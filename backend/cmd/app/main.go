@@ -7,9 +7,9 @@ import (
 	"os"
 
 	"antiscam-simulator/internal/transport/rest"
-	"antiscam-simulator/internal/user/adapter"
-	"antiscam-simulator/internal/user/controller"
-	"antiscam-simulator/internal/user/service"
+	"antiscam-simulator/internal/user/adapter/postgres"
+	"antiscam-simulator/internal/user/controller/http"
+	"antiscam-simulator/internal/user/usecase"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -42,9 +42,9 @@ func run() error {
 		return fmt.Errorf("failed to ping database: %w", err)
 	}
 
-	repo := adapter.NewUserRepository(pool)
-	svc := service.NewUserService(repo)
-	handler := controller.NewUserHandler(svc)
+	repo := postgres.NewUserRepository(pool)
+	svc := userusecase.NewUsecaseUser(repo)
+	handler := usercontroller.NewUserController(svc)
 
 	server := rest.NewServer(port, handler)
 
