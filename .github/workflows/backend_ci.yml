@@ -2,7 +2,7 @@ name: Backend CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "fix/ci-linter" ]
     paths:
       - 'backend/**'
   pull_request:
@@ -37,5 +37,5 @@ jobs:
     - name: Run GolangCI-Lint
       uses: golangci/golangci-lint-action@v6
       with:
-        version: v1.59.1
+        version: latest
         working-directory: backend
