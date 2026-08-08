@@ -1,43 +1,40 @@
+version: "2"
+
 run:
-  go: '1.24'
   timeout: 5m
   tests: true
 
-linters-settings:
-  govet:
-    enable:
-      - shadow
-  gocyclo:
-    min-complexity: 15
-
-  goconst:
-
-    min-len: 3
-    min-occurrences: 3
-  gocritic:
-    enabled-tags:
-      - performance
-      - style
-      - experimental
-  
 linters:
-  disable-all: true
+  default: none
   enable:
     - govet
     - errcheck
     - staticcheck
-    - gosimple
     - ineffassign
-    - typecheck
     - gocyclo
     - gocritic
     - revive
+  settings:
+    govet:
+      enable:
+        - shadow
+    gocyclo:
+      min-complexity: 15
+    goconst:
+      min-len: 3
+      min-occurrences: 3
+    gocritic:
+      enabled-tags:
+        - performance
+        - style
+        - experimental
+  exclusions:
+    rules:
+      - linters:
+          - revive
+        text: "exported (method|function|type|const|var) (.+) should have comment or be unexported"
 
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
-  exclude-rules:
-    - linters:
-        - revive
-      text: "exported (method|function|type|const|var) (.+) should have comment or be unexported"
 
