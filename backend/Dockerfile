@@ -17,6 +17,7 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /app
 
 COPY --from=builder /app/main .
+COPY --from=builder /app/scenarios ./scenarios
 
 RUN chown -R appuser:appgroup /app
 
