@@ -11,7 +11,7 @@ export interface SaveTrainingRequest {
   scenario_id: string
   total_risk: number
   final_grade: string
-  mistakes: GameTag[]
+  tags: GameTag[]
 }
 
 export interface SaveTrainingResponse {
@@ -22,7 +22,7 @@ export interface HistoryItem {
   scenario_id: string
   total_risk: number
   final_grade: string
-  mistakes: GameTag[]
+  tags: GameTag[]
   created_at: string
 }
 
