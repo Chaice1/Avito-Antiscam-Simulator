@@ -3,6 +3,7 @@ package simulatorcontroller
 import (
 	simulatordomain "antiscam-simulator/internal/simulator/domain"
 	simulatordto "antiscam-simulator/internal/simulator/dto"
+	userdomain "antiscam-simulator/internal/user/domain"
 	"context"
 	"encoding/json"
 	"errors"
@@ -16,6 +17,9 @@ type SimulatorUsecase interface {
 	GetScenarios() []*simulatordomain.Scenario
 }
 
+type UserStorage interface {
+	SaveTrainingResult(context.Context, *userdomain.TrainingResult) error
+}
 type LocalStorage interface {
 	GetRole(string) string
 	GetTitle(string) string
@@ -24,12 +28,14 @@ type LocalStorage interface {
 type SimulatorController struct {
 	su SimulatorUsecase
 	ls LocalStorage
+	us UserStorage
 }
 
-func NewSimulatorController(su SimulatorUsecase, ls LocalStorage) *SimulatorController {
+func NewSimulatorController(su SimulatorUsecase, ls LocalStorage, us UserStorage) *SimulatorController {
 	return &SimulatorController{
 		su: su,
 		ls: ls,
+		us: us,
 	}
 }
 
@@ -111,17 +117,39 @@ func (sc *SimulatorController) ProcessStep() http.HandlerFunc {
 
 				Tags := make([]simulatordto.Tag, len(session.Tags))
 
-				for i, mistake := range session.Tags {
+				UserTags := make([]userdomain.Tag, len(session.Tags))
+				for i, tag := range session.Tags {
 
-					respMistake := simulatordto.Tag{
-						Question: mistake.Question,
-						Answer:   mistake.Answer,
-					}
-					if val, ok := simulatordomain.TagDictionary[mistake.TagID]; ok {
-						respMistake.Explanation = val
+					respTag := simulatordto.Tag{
+						Question: tag.Question,
+						Answer:   tag.Answer,
 					}
 
-					Tags[i] = respMistake
+					userTag := userdomain.Tag{
+						Question: tag.Question,
+						Answer:   tag.Answer,
+					}
+
+					if val, ok := simulatordomain.TagDictionary[tag.TagID]; ok {
+						respTag.Explanation = val
+						userTag.Explanation = val
+					}
+
+					Tags[i] = respTag
+					UserTags[i] = userTag
+				}
+
+				err := sc.us.SaveTrainingResult(r.Context(), &userdomain.TrainingResult{
+					SessionID:  session.SessionID,
+					ScenarioID: session.ScenarioID,
+					UserID:     session.UserID,
+					TotalRisk:  session.TotalRisk,
+					FinalGrade: FinalGrade,
+					Tags:       UserTags,
+				})
+
+				if err != nil {
+					slog.Error("failed to save training Result")
 				}
 
 				resp = simulatordto.ProcessStepResponse{
