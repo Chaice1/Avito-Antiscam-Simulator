@@ -4,6 +4,7 @@ import (
 	simulatordomain "antiscam-simulator/internal/simulator/domain"
 	"context"
 	"encoding/json"
+	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -15,10 +16,21 @@ type RedisDB struct {
 }
 
 func NewRedisDB(ttl int64, address string) *RedisDB {
-	return &RedisDB{
-		r: redis.NewClient(&redis.Options{
+	var opt *redis.Options
+	if strings.HasPrefix(address, "redis://") || strings.HasPrefix(address, "rediss://") {
+		var err error
+		opt, err = redis.ParseURL(address)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		opt = &redis.Options{
 			Addr: address,
-		}),
+		}
+	}
+
+	return &RedisDB{
+		r:   redis.NewClient(opt),
 		ttl: time.Duration(ttl) * time.Minute,
 	}
 }
