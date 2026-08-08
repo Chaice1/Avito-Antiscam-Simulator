@@ -1,0 +1,40 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [ "main", "fix/ci-linter" ]
+    paths:
+      - 'backend/**'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'backend/**'
+
+jobs:
+  test-and-lint:
+    name: Test & Lint
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: backend/go.mod
+        cache: true
+        cache-dependency-path: backend/go.sum
+
+    - name: Download Dependencies
+      run: go mod download
+      working-directory: ./backend
+
+    - name: Run Unit Tests
+      run: go test -v -race ./...
+      working-directory: ./backend
+
+    - name: Run GolangCI-Lint
+      uses: golangci/golangci-lint-action@v9
+      with:
+        working-directory: backend
