@@ -37,7 +37,7 @@ func NewStorageGraphOfScenarios(paths []string) (*StorageGraphScenarios, error) 
 			}
 
 			domainGraph := graph.MapDtoToDomain()
-			ScenariosGraphs[domainGraph.ScenarioID] = domainGraph
+			ScenariosGraphs[domainGraph.Scenario.ScenarioID] = domainGraph
 		}(paths[i])
 
 	}
@@ -53,11 +53,11 @@ func NewStorageGraphOfScenarios(paths []string) (*StorageGraphScenarios, error) 
 }
 
 func (sg *StorageGraphScenarios) GetTitle(scenarioID string) string {
-	return sg.GraphsOfScenarios[scenarioID].Title
+	return sg.GraphsOfScenarios[scenarioID].Scenario.Title
 }
 
 func (sg *StorageGraphScenarios) GetRole(scenarioID string) string {
-	return sg.GraphsOfScenarios[scenarioID].Role
+	return sg.GraphsOfScenarios[scenarioID].Scenario.Role
 }
 
 func (sg *StorageGraphScenarios) GetNode(scenarioID, nodeID string) (simulatordomain.Node, error) {
@@ -69,4 +69,19 @@ func (sg *StorageGraphScenarios) GetNode(scenarioID, nodeID string) (simulatordo
 		return simulatordomain.Node{}, simulatordomain.ErrScenarioNotFound
 	}
 	return sg.GraphsOfScenarios[scenarioID].Nodes[nodeID], nil
+}
+
+func (sg *StorageGraphScenarios) GetScenarios() []*simulatordomain.Scenario {
+
+	scenarios := make([]*simulatordomain.Scenario, 0, len(sg.GraphsOfScenarios))
+	for _, graph := range sg.GraphsOfScenarios {
+		scenarios = append(scenarios, &simulatordomain.Scenario{
+			Title:      graph.Scenario.Title,
+			Role:       graph.Scenario.Role,
+			ScenarioID: graph.Scenario.ScenarioID,
+		})
+	}
+
+	return scenarios
+
 }
