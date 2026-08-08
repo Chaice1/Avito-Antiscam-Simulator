@@ -1,0 +1,136 @@
+{
+  "scenario": {
+    "scenario_id": "buyer_iphone",
+    "title": "Покупка iPhone 14 Pro Max",
+    "role": "buyer"
+  },
+  "start_node_id": "node_1",
+  "nodes": {
+    "node_1": {
+      "question": "Здравствуйте! Да, телефон продаю. Вы из моего города или доставкой?",
+      "options": [
+        {
+          "id": "ans_1_1",
+          "text": "Я из вашего. Где можно встретиться?",
+          "risk": 0,
+          "tag_id": "GOOD_PERSONAL_MEET",
+          "next_node_id": "node_2_meet"
+        },
+        {
+          "id": "ans_1_2",
+          "text": "Доставкой. Можете скинуть дополнительные фото перед оформлением?",
+          "risk": 10,
+          "tag_id": "ASKED_DELIVERY_FIRST",
+          "next_node_id": "node_2_photo"
+        }
+      ]
+    },
+    "node_2_meet": {
+      "question": "Я сейчас загородом, приеду только в выходные. Давайте я вам почтой отправлю за свой счет? Оплатите только сам телефон на карту.",
+      "options": [
+        {
+          "id": "ans_2_1",
+          "text": "Нет, подожду до выходных, встретимся лично.",
+          "risk": 0,
+          "tag_id": "GOOD_REFUSED_PREPAYMENT",
+          "next_node_id": "node_win_safe"
+        },
+        {
+          "id": "ans_2_2",
+          "text": "Ну хорошо, если за ваш счет. Давайте номер карты.",
+          "risk": 100,
+          "tag_id": "AGREED_PREPAYMENT",
+          "next_node_id": "game_over"
+        }
+      ]
+    },
+    "node_2_photo": {
+      "question": "Конечно! Только тут фотки сжимаются сильно, ничего не видно. Напишите мне в Телеграм @apple_seller99, я туда оригиналы скину.",
+      "options": [
+        {
+          "id": "ans_3_1",
+          "text": "Ок, сейчас напишу в ТГ.",
+          "risk": 30,
+          "tag_id": "WENT_TO_MESSENGER",
+          "next_node_id": "node_3_tg"
+        },
+        {
+          "id": "ans_3_2",
+          "text": "Кидайте здесь, мне качества Авито хватит.",
+          "risk": 0,
+          "tag_id": "GOOD_STAYED_IN_CHAT",
+          "next_node_id": "node_3_safe"
+        }
+      ]
+    },
+    "node_3_tg": {
+      "question": "[В Телеграме]: Вот фотки. Кстати, я тут уже создал накладную на отправку. Авито просит указать ваш email, чтобы выслать чек. Напишите?",
+      "options": [
+        {
+          "id": "ans_4_1",
+          "text": "Написать свой Email.",
+          "risk": 30,
+          "tag_id": "GAVE_PERSONAL_DATA",
+          "next_node_id": "node_4_fake_mail"
+        },
+        {
+          "id": "ans_4_2",
+          "text": "Авито не просит почту покупателя у продавца. Вы мошенник.",
+          "risk": 0,
+          "tag_id": "GOOD_RECOGNIZED_PHISHING",
+          "next_node_id": "node_win_smart"
+        }
+      ]
+    },
+    "node_4_fake_mail": {
+      "question": "(Вам на почту приходит письмо: 'Заказ оформлен! Нажмите кнопку ОПЛАТИТЬ') \nПродавец: 'Оплатите по ссылке из письма, я сразу отправлю.'",
+      "options": [
+        {
+          "id": "ans_5_1",
+          "text": "Нажать на кнопку в письме и оплатить.",
+          "risk": 100,
+          "tag_id": "CLICKED_PHISHING_LINK",
+          "next_node_id": "game_over"
+        },
+        {
+          "id": "ans_5_2",
+          "text": "Я проверю статус заказа в официальном приложении Авито.",
+          "risk": 0,
+          "tag_id": "GOOD_SAFE_DEAL",
+          "next_node_id": "node_win_smart"
+        }
+      ]
+    },
+    "node_3_safe": {
+      "question": "(Присылает фото прямо в чат Авито). Устроит? Я сегодня вечером уезжаю, если хотите, могу прямо сейчас скинуть номер карты жены, оплатите ей, а я перед поездом закину в СДЭК.",
+      "options": [
+        {
+          "id": "ans_6_1",
+          "text": "Нет, спасибо. Оформлю только через официальную кнопку 'Купить с доставкой'.",
+          "risk": 0,
+          "tag_id": "GOOD_SAFE_DEAL",
+          "next_node_id": "node_win_safe"
+        },
+        {
+          "id": "ans_6_2",
+          "text": "Отлично, давайте номер карты, так быстрее будет.",
+          "risk": 100,
+          "tag_id": "AGREED_PREPAYMENT",
+          "next_node_id": "game_over"
+        }
+      ]
+    },
+    "node_win_safe": {
+      "question": "Сделка прошла успешно. Вы получили товар.",
+      "options": []
+    },
+    "node_win_smart": {
+      "question": "Пользователь заблокирован за попытку фишинга. Вы избежали потери денег!",
+      "options": []
+    },
+    "game_over": {
+      "question": "С вашей карты списаны средства на поддельном сайте. Вы стали жертвой мошенников.",
+      "options": []
+    }
+  }
+}

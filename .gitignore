@@ -1,34 +1,10 @@
-# Редакторы / IDE
 .idea/
 .vscode/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-
-# Скомпилированные/бинарные и лог-файлы
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
 *.log
-
-# Окружение / секреты
 .env
-
-# Backend (сборка)
 backend/antiscam-backend
-
-# Frontend
-node_modules/
-dist/
-dist-ssr/
-*.local
-.DS_Store
-
-# --- Внутренние документы команды (handoff/спеки — не публикуются в git) ---
-HANDOFF.md
-handoff*.md
-scoring-spec.md
-docs/

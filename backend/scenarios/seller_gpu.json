@@ -1,0 +1,98 @@
+{
+  "scenario": {
+    "scenario_id": "seller_gpu",
+    "title": "Продажа RTX 4090",
+    "role": "seller"
+  },
+  "start_node_id": "node_1",
+  "nodes": {
+    "node_1": {
+      "question": "Здравствуйте. Видюха не майнилась? Пломбы на месте? Отправите Авито X EXMAIL?",
+      "options": [
+        {
+          "id": "ans_1_1",
+          "text": "Всё в идеале, пломбы на месте. Да, отправлю.",
+          "risk": 0,
+          "tag_id": "GOOD_AGREED_DELIVERY",
+          "next_node_id": "node_2_support"
+        },
+        {
+          "id": "ans_1_2",
+          "text": "Доставкой такие дорогие вещи не отправляю, только личная встреча.",
+          "risk": 0,
+          "tag_id": "GOOD_PERSONAL_MEET",
+          "next_node_id": "node_win_safe"
+        }
+      ]
+    },
+    "node_2_support": {
+      "question": "Я нажал 'Купить', но мне пишет ошибку: 'У продавца не подтвержден Email'. Напишите вашу почту, я введу её для подтверждения сделки.",
+      "options": [
+        {
+          "id": "ans_2_1",
+          "text": "Написать свой Email.",
+          "risk": 40,
+          "tag_id": "GAVE_PERSONAL_DATA",
+          "next_node_id": "node_3_email"
+        },
+        {
+          "id": "ans_2_2",
+          "text": "Это бред, Авито не просит почту продавца у покупателя. Отменяем.",
+          "risk": 0,
+          "tag_id": "GOOD_RECOGNIZED_PHISHING",
+          "next_node_id": "node_win_smart"
+        }
+      ]
+    },
+    "node_3_email": {
+      "question": "(Вам на почту приходит письмо с логотипом Авито: 'Заказ успешно оплачен! Нажмите кнопку ПОЛУЧИТЬ СРЕДСТВА')",
+      "options": [
+        {
+          "id": "ans_3_1",
+          "text": "Нажать на кнопку в письме.",
+          "risk": 100,
+          "tag_id": "CLICKED_PHISHING_LINK",
+          "next_node_id": "game_over"
+        },
+        {
+          "id": "ans_3_2",
+          "text": "Зайти в официальное приложение Авито и проверить статус заказа там.",
+          "risk": 0,
+          "tag_id": "GOOD_STAYED_IN_CHAT",
+          "next_node_id": "node_4_verify"
+        }
+      ]
+    },
+    "node_4_verify": {
+      "question": "В приложении Авито заказа нет. А в чате покупатель пишет: 'Ну что, деньги пришли? А то у меня списались!'",
+      "options": [
+        {
+          "id": "ans_4_1",
+          "text": "Наверное, глюк. Пойду перейду по ссылке из письма еще раз.",
+          "risk": 100,
+          "tag_id": "CLICKED_PHISHING_LINK",
+          "next_node_id": "game_over"
+        },
+        {
+          "id": "ans_4_2",
+          "text": "Оплаты в приложении нет, значит вы мошенник. Помечаю письмо как СПАМ.",
+          "risk": 0,
+          "tag_id": "GOOD_SAFE_DEAL",
+          "next_node_id": "node_win_smart"
+        }
+      ]
+    },
+    "node_win_safe": {
+      "question": "Покупатель прочитал сообщение и больше не ответил.",
+      "options": []
+    },
+    "node_win_smart": {
+      "question": "Вы вовремя распознали обман. Ваши данные карты в безопасности.",
+      "options": []
+    },
+    "game_over": {
+      "question": "Кнопка в письме вела на поддельный сайт. Вы ввели данные карты, и мошенники списали все ваши деньги.",
+      "options": []
+    }
+  }
+}

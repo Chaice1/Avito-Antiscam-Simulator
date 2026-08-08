@@ -1,0 +1,15 @@
+
+app:
+  name: "Avito Antiscam Trainer"
+
+http:
+  address: ":8080"
+
+cache:
+  ttl: 15
+
+redis:
+  address: ":6379"
+
+db:
+  dsn: "postgres://antiscam_user:antiscam_password@localhost:5432/antiscam_db?sslmode=disable"
