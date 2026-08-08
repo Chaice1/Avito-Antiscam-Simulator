@@ -21,7 +21,6 @@ func NewServer(port string, userController *usercontroller.UserController, simCo
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("POST /api/v1/register", userController.Register)
-	mux.HandleFunc("POST /api/v1/trainings", userController.SaveTrainingResult)
 	mux.HandleFunc("GET /api/v1/users/{user_id}/history", userController.GetHistory)
 
 	mux.HandleFunc("POST /api/v1/game/start", simController.StartGame())

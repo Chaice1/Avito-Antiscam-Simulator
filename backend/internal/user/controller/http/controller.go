@@ -12,7 +12,6 @@ import (
 
 type UserUsecase interface {
 	Register(ctx context.Context, username string) (string, error)
-	SaveTrainingResult(ctx context.Context, result *userdomain.TrainingResult) error
 	GetHistory(ctx context.Context, userID string) ([]userdomain.TrainingHistoryItem, error)
 }
 
@@ -52,50 +51,7 @@ func (c *UserController) Register(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(userdto.RegisterResponse{UserID: userID})
 }
 
-func (c *UserController) SaveTrainingResult(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		c.writeError(w, http.StatusMethodNotAllowed, "method not allowed")
-		return
-	}
 
-	var req userdto.SaveTrainingRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		c.writeError(w, http.StatusBadRequest, "invalid request body")
-		return
-	}
-
-	if req.SessionID == "" {
-		c.writeError(w, http.StatusBadRequest, "session_id is required")
-		return
-	}
-	if req.UserID == "" {
-		c.writeError(w, http.StatusBadRequest, "user_id is required")
-		return
-	}
-	if req.ScenarioID == "" {
-		c.writeError(w, http.StatusBadRequest, "scenario_id is required")
-		return
-	}
-	if req.FinalGrade == "" {
-		c.writeError(w, http.StatusBadRequest, "final_grade is required")
-		return
-	}
-
-	domainResult := req.MapToDomain()
-
-	err := c.usecase.SaveTrainingResult(r.Context(), domainResult)
-	if err != nil {
-		c.writeError(w, http.StatusInternalServerError, "failed to save training results")
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	_ = json.NewEncoder(w).Encode(map[string]string{
-		"status":  "success",
-		"message": "training result saved successfully",
-	})
-}
 
 func (c *UserController) GetHistory(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {

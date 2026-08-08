@@ -24,14 +24,6 @@ type TagDto struct {
 	Explanation string `json:"explanation"`
 }
 
-type SaveTrainingRequest struct {
-	SessionID  string   `json:"session_id"`
-	UserID     string   `json:"user_id"`
-	ScenarioID string   `json:"scenario_id"`
-	TotalRisk  int32    `json:"total_risk"`
-	FinalGrade string   `json:"final_grade"`
-	Tags       []TagDto `json:"tags"`
-}
 
 type TrainingHistoryItemDto struct {
 	SessionID  string    `json:"session_id"`
@@ -45,26 +37,6 @@ type TrainingHistoryItemDto struct {
 type UserHistoryResponse struct {
 	UserID  string                   `json:"user_id"`
 	History []TrainingHistoryItemDto `json:"history"`
-}
-
-func (r *SaveTrainingRequest) MapToDomain() *userdomain.TrainingResult {
-	domainTags := make([]userdomain.Tag, 0, len(r.Tags))
-	for _, tag := range r.Tags {
-		domainTags = append(domainTags, userdomain.Tag{
-			Question:    tag.Question,
-			Answer:      tag.Answer,
-			Explanation: tag.Explanation,
-		})
-	}
-
-	return &userdomain.TrainingResult{
-		SessionID:  r.SessionID,
-		UserID:     r.UserID,
-		ScenarioID: r.ScenarioID,
-		TotalRisk:  r.TotalRisk,
-		FinalGrade: r.FinalGrade,
-		Tags:       domainTags,
-	}
 }
 
 func MapHistoryFromDomain(items []userdomain.TrainingHistoryItem) []TrainingHistoryItemDto {

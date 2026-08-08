@@ -29,7 +29,7 @@ func (r *UserRepository) SaveTrainingResult(ctx context.Context, result *userdom
 	if err != nil {
 		return err
 	}
-	query := `INSERT INTO training_results (session_id, user_id, scenario_id, total_risk, final_grade, tags) VALUES ($1, $2, $3, $4, $5, $6)`
+	query := `INSERT INTO training_results (session_id, user_id, scenario_id, total_risk, final_grade, tags) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (session_id) DO NOTHING`
 	_, err = r.pool.Exec(ctx, query, result.SessionID, result.UserID, result.ScenarioID, result.TotalRisk, result.FinalGrade, tagsJSON)
 	return err
 }

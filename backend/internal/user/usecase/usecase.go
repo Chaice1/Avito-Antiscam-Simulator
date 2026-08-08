@@ -10,7 +10,6 @@ import (
 
 type UserRepository interface {
 	Create(ctx context.Context, user userdomain.User) error
-	SaveTrainingResult(ctx context.Context, result *userdomain.TrainingResult) error
 	GetHistory(ctx context.Context, userID string) ([]userdomain.TrainingHistoryItem, error)
 }
 
@@ -38,9 +37,7 @@ func (u *UsecaseUser) Register(ctx context.Context, username string) (string, er
 	return userID, nil
 }
 
-func (u *UsecaseUser) SaveTrainingResult(ctx context.Context, result *userdomain.TrainingResult) error {
-	return u.repo.SaveTrainingResult(ctx, result)
-}
+
 
 func (u *UsecaseUser) GetHistory(ctx context.Context, userID string) ([]userdomain.TrainingHistoryItem, error) {
 	return u.repo.GetHistory(ctx, userID)
