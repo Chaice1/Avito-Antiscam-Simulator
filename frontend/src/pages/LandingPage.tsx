@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Button, Col, Divider, Row } from 'antd'
+import { Button, Col, Divider, Input, Row, message } from 'antd'
 import {
   WarningOutlined,
   ShoppingCartOutlined,
@@ -7,10 +7,14 @@ import {
   ClockCircleOutlined,
   SearchOutlined,
   CheckOutlined,
+  UserOutlined,
+  LogoutOutlined,
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { colors, radius } from '../shared/theme'
 import { useRoleStore, type Role } from '../features/role/model/roleStore'
+import { useUserStore } from '../features/user/model/userStore'
+import { registerWithName } from '../shared/api/storage'
 import FadeIn from '../shared/ui/FadeIn'
 
 const ROLES: { key: Role; icon: React.ReactNode; title: string; description: string }[] = [
@@ -29,7 +33,7 @@ const ROLES: { key: Role; icon: React.ReactNode; title: string; description: str
 ]
 
 const STATS = [
-  { icon: <ClockCircleOutlined />, text: '3 минуты на сценарий' },
+  { icon: <ClockCircleOutlined />, text: '15 минут на сценарий' },
   { icon: <SearchOutlined />, text: 'Распознай схему мошенника' },
   { icon: <CheckOutlined />, text: 'Проверь свои решения' },
 ]
@@ -108,11 +112,34 @@ function RiskBar({ value }: { value: number }) {
 export default function LandingPage() {
   const navigate = useNavigate()
   const setRole = useRoleStore((s) => s.setRole)
+  const username = useUserStore((s) => s.username)
+  const setUsername = useUserStore((s) => s.setUsername)
+  const clearUsername = useUserStore((s) => s.clear)
   const [selectedOption, setSelectedOption] = useState<string | null>(null)
+  const [nickname, setNickname] = useState('')
+  const [registering, setRegistering] = useState(false)
 
   const startTraining = (role: Role) => {
     setRole(role)
     navigate('/train')
+  }
+
+  const handleRegister = async () => {
+    const name = nickname.trim()
+    if (!name) {
+      message.warning('Введите имя')
+      return
+    }
+    setRegistering(true)
+    try {
+      await registerWithName(name)
+      setUsername(name)
+      message.success(`Вы вошли как ${name}`)
+    } catch {
+      message.error('Не удалось зарегистрироваться — попробуйте позже')
+    } finally {
+      setRegistering(false)
+    }
   }
 
   const selected = DEMO_OPTIONS.find((o) => o.id === selectedOption)
@@ -242,6 +269,90 @@ export default function LandingPage() {
               </div>
             </Col>
           </Row>
+        </section>
+
+        {/* ВХОД */}
+        <section style={{ maxWidth: 1000, margin: '0 auto', padding: '32px 24px 0' }}>
+          <div
+            style={{
+              background: '#fff',
+              border: `1px solid ${colors.border}`,
+              borderRadius: radius.card,
+              padding: 16,
+            }}
+          >
+            {username ? (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 12,
+                  flexWrap: 'wrap',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: '50%',
+                      background: colors.lightBlueBg,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: colors.primary,
+                      fontSize: 18,
+                    }}
+                  >
+                    <UserOutlined />
+                  </div>
+                  <div>
+                    <div style={{ color: colors.textSecondary, fontSize: 12 }}>Вы вошли как</div>
+                    <div style={{ fontWeight: 700, fontSize: 16, color: colors.textMain }}>
+                      {username}
+                    </div>
+                  </div>
+                </div>
+                <Button icon={<LogoutOutlined />} onClick={() => clearUsername()}>
+                  Сменить пользователя
+                </Button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    background: colors.lightBlueBg,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: colors.primary,
+                    fontSize: 18,
+                    flexShrink: 0,
+                  }}
+                >
+                  <UserOutlined />
+                </div>
+                <Input
+                  placeholder="Ваше имя"
+                  value={nickname}
+                  onChange={(e) => setNickname(e.target.value)}
+                  onPressEnter={handleRegister}
+                  maxLength={30}
+                  style={{ maxWidth: 260 }}
+                />
+                <Button type="primary" loading={registering} onClick={handleRegister}>
+                  Войти
+                </Button>
+                <span style={{ color: colors.textSecondary, fontSize: 13 }}>
+                  Зарегистрируйтесь, чтобы история попыток сохранялась
+                </span>
+              </div>
+            )}
+          </div>
         </section>
 
         {/* ВЫБОР РОЛИ */}
