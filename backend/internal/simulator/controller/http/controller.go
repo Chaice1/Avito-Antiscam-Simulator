@@ -9,12 +9,14 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"strings"
 )
 
 type SimulatorUsecase interface {
 	StartGame(context.Context, string, string) (string, *simulatordomain.Node, error)
 	ProcessStep(context.Context, string, string) (*simulatordomain.Node, *simulatordomain.Session, error)
 	GetScenarios() []*simulatordomain.Scenario
+	GenerateScenario(context.Context) (string, error)
 }
 
 type UserStorage interface {
@@ -138,18 +140,24 @@ func (sc *SimulatorController) ProcessStep() http.HandlerFunc {
 					Tags[i] = respTag
 					UserTags[i] = userTag
 				}
+				isAi := false
+				if strings.HasPrefix(session.ScenarioID, "ai_") {
+					isAi = true
+				}
 
-				err = sc.us.SaveTrainingResult(r.Context(), &userdomain.TrainingResult{
-					SessionID:  session.SessionID,
-					ScenarioID: session.ScenarioID,
-					UserID:     session.UserID,
-					TotalRisk:  session.TotalRisk,
-					FinalGrade: FinalGrade,
-					Tags:       UserTags,
-				})
+				if !isAi {
+					err = sc.us.SaveTrainingResult(r.Context(), &userdomain.TrainingResult{
+						SessionID:  session.SessionID,
+						ScenarioID: session.ScenarioID,
+						UserID:     session.UserID,
+						TotalRisk:  session.TotalRisk,
+						FinalGrade: FinalGrade,
+						Tags:       UserTags,
+					})
 
-				if err != nil {
-					slog.Error("failed to save training Result", "error", err)
+					if err != nil {
+						slog.Error("failed to save training Result", "error", err)
+					}
 				}
 
 				resp = simulatordto.ProcessStepResponse{
@@ -219,6 +227,32 @@ func (sc *SimulatorController) GetScenarios() http.HandlerFunc {
 			}
 		}
 		writeJSON(w, http.StatusOK, resp)
+	}
+}
+
+func (sc *SimulatorController) GenerateScenario() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		scenarioID, err := sc.su.GenerateScenario(r.Context())
+		if err != nil {
+			switch {
+			case errors.Is(err, simulatordomain.ErrEmptyAiResponse):
+				writeError(w, http.StatusBadGateway, err.Error(), "Нейросеть не смогла сгенерировать сценарий, выберите готовый")
+				return
+			case errors.Is(err, simulatordomain.ErrAPIAi):
+				writeError(w, http.StatusBadGateway, err.Error(), "Нейросеть недоступна, Sвыберите готовый сценарий")
+				return
+			default:
+				writeError(w, http.StatusInternalServerError, err.Error(), "Ошибка на сервере, попробуйте ещё раз")
+				return
+			}
+		}
+
+		resp := simulatordto.GenerateScenarioResponse{
+			ScenarioID: scenarioID,
+		}
+
+		writeJSON(w, http.StatusOK, resp)
+
 	}
 }
 
