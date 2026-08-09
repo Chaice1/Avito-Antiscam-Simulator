@@ -1,6 +1,8 @@
 version: '3.8'
 
 services:
+  
+
   backend:
     build:
       context: ./backend
@@ -17,11 +19,13 @@ services:
     networks:
       - app
     environment:
-      APP_NAME: "Avito Antiscam Trainer"
-      REDIS_ADDRESS: "redis:6379"
-      HTTP_ADDRESS: ":8080"
-      TTL: "15"
-      DB_DSN: "postgres://antiscam_user:antiscam_password@db:5432/antiscam_db?sslmode=disable"
+      - YANDEX_KEY=${KEY}
+      - YANDEX_FOLDER_ID=${FOLDER_ID}
+      - APP_NAME=Avito Antiscam Trainer
+      - REDIS_ADDRESS=redis:6379
+      - HTTP_ADDRESS=:8080
+      - TTL=15
+      - DB_DSN=postgres://antiscam_user:antiscam_password@db:5432/antiscam_db?sslmode=disable
     volumes:
       - ./backend/scenarios:/app/scenarios
 
