@@ -6,9 +6,11 @@ import (
 	"encoding/json"
 	"log/slog"
 	"os"
+	"sync"
 )
 
 type StorageGraphScenarios struct {
+	mu                *sync.RWMutex
 	GraphsOfScenarios map[string]*simulatordomain.Graph
 }
 
@@ -47,20 +49,27 @@ func NewStorageGraphOfScenarios(paths []string) (*StorageGraphScenarios, error) 
 	}
 
 	return &StorageGraphScenarios{
+		mu:                &sync.RWMutex{},
 		GraphsOfScenarios: ScenariosGraphs,
 	}, nil
 
 }
 
 func (sg *StorageGraphScenarios) GetTitle(scenarioID string) string {
+	sg.mu.RLock()
+	defer sg.mu.RUnlock()
 	return sg.GraphsOfScenarios[scenarioID].Scenario.Title
 }
 
 func (sg *StorageGraphScenarios) GetRole(scenarioID string) string {
+	sg.mu.RLock()
+	defer sg.mu.RUnlock()
 	return sg.GraphsOfScenarios[scenarioID].Scenario.Role
 }
 
 func (sg *StorageGraphScenarios) GetNode(scenarioID, nodeID string) (simulatordomain.Node, error) {
+	sg.mu.RLock()
+	defer sg.mu.RUnlock()
 	if nodeID == "" {
 		if graph, ok := sg.GraphsOfScenarios[scenarioID]; ok {
 			return sg.GraphsOfScenarios[scenarioID].Nodes[graph.StartNodeID], nil
@@ -72,16 +81,28 @@ func (sg *StorageGraphScenarios) GetNode(scenarioID, nodeID string) (simulatordo
 }
 
 func (sg *StorageGraphScenarios) GetScenarios() []*simulatordomain.Scenario {
+	sg.mu.RLock()
+	defer sg.mu.RUnlock()
 
 	scenarios := make([]*simulatordomain.Scenario, 0, len(sg.GraphsOfScenarios))
 	for _, graph := range sg.GraphsOfScenarios {
-		scenarios = append(scenarios, &simulatordomain.Scenario{
-			Title:      graph.Scenario.Title,
-			Role:       graph.Scenario.Role,
-			ScenarioID: graph.Scenario.ScenarioID,
-		})
+		if !graph.IsAi {
+			scenarios = append(scenarios, &simulatordomain.Scenario{
+				Title:      graph.Scenario.Title,
+				Role:       graph.Scenario.Role,
+				ScenarioID: graph.Scenario.ScenarioID,
+			})
+		}
+
 	}
 
 	return scenarios
+
+}
+
+func (sg *StorageGraphScenarios) SaveScenario(graph *simulatordomain.Graph) {
+	sg.mu.Lock()
+	defer sg.mu.Unlock()
+	sg.GraphsOfScenarios[graph.Scenario.ScenarioID] = graph
 
 }
