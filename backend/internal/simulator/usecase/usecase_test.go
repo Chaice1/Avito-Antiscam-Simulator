@@ -2,12 +2,26 @@ package simulatorusecase
 
 import (
 	simulatordomain "antiscam-simulator/internal/simulator/domain"
+	simulatordto "antiscam-simulator/internal/simulator/dto"
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+type mockClientLLM struct {
+	graph *simulatordto.Graph
+	err   error
+}
+
+func (m *mockClientLLM) GenerateScenario(_ context.Context) (*simulatordto.Graph, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return m.graph, nil
+}
 
 type mockRedis struct {
 	sessions    map[string]*simulatordomain.Session
@@ -43,7 +57,8 @@ func (m *mockRedis) GetSessionInfo(_ context.Context, sessionID string) (*simula
 }
 
 type mockStorage struct {
-	nodes map[string]simulatordomain.Node
+	nodes       map[string]simulatordomain.Node
+	savedGraphs map[string]*simulatordomain.Graph
 }
 
 func (m *mockStorage) GetNode(scenarioID, nodeID string) (simulatordomain.Node, error) {
@@ -59,8 +74,79 @@ func (m *mockStorage) GetNode(scenarioID, nodeID string) (simulatordomain.Node, 
 	return node, nil
 }
 
+func (m *mockStorage) SaveScenario(g *simulatordomain.Graph) {
+
+	m.savedGraphs[g.Scenario.ScenarioID] = g
+}
+
 func (m *mockStorage) GetScenarios() []*simulatordomain.Scenario {
 	return nil
+}
+
+func TestGenerateScenario(t *testing.T) {
+	fakeAIGraph := &simulatordto.Graph{
+		Scenario: simulatordto.Scenario{
+			ScenarioID: "ai_12345",
+			Title:      "Сгенерированный сценарий",
+			Role:       "buyer",
+		},
+		StartNodeID: "node_1",
+		Nodes: map[string]simulatordto.Node{
+			"node_1": {
+				Question: "ИИ Вопрос",
+				Options:  []simulatordto.Option{},
+			},
+		},
+	}
+
+	tests := []struct {
+		name          string
+		mockError     error
+		expectedID    string
+		expectedError error
+	}{
+		{
+			name:          "Успешная генерация сценария",
+			mockError:     nil,
+			expectedID:    "ai_12345",
+			expectedError: nil,
+		},
+		{
+			name:          "Ошибка от LLM API",
+			mockError:     errors.New("yandex gpt timeout"),
+			expectedID:    "",
+			expectedError: errors.New("yandex gpt timeout"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			redisMock := newMockRedis()
+			storageMock := &mockStorage{
+				nodes:       make(map[string]simulatordomain.Node),
+				savedGraphs: make(map[string]*simulatordomain.Graph),
+			}
+			mockLLM := &mockClientLLM{
+				graph: fakeAIGraph,
+				err:   tt.mockError,
+			}
+
+			us := NewUsecaseSimulator(redisMock, storageMock, mockLLM)
+			scenariodID, err := us.GenerateScenario(context.Background())
+
+			if tt.expectedError != nil {
+				require.Error(t, err)
+				assert.Equal(t, tt.expectedError.Error(), err.Error())
+				assert.Empty(t, scenariodID)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, tt.expectedID, scenariodID, "ID сценария не совпадает")
+			require.NotNil(t, storageMock.savedGraphs[tt.expectedID])
+		})
+	}
 }
 
 func TestProcessStep(t *testing.T) {
@@ -159,6 +245,7 @@ func TestProcessStep(t *testing.T) {
 		},
 	}
 	redisMock := newMockRedis()
+	mockLLM := &mockClientLLM{}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -170,7 +257,7 @@ func TestProcessStep(t *testing.T) {
 				TotalRisk:  tt.initialRisk,
 				IsOver:     false,
 			}
-			us := NewUsecaseSimulator(redisMock, storageMock)
+			us := NewUsecaseSimulator(redisMock, storageMock, mockLLM)
 
 			_, _, err := us.ProcessStep(context.Background(), tt.answerID, tt.sessionID)
 
@@ -224,12 +311,13 @@ func TestStartGame(t *testing.T) {
 			expectedError: simulatordomain.ErrScenarioNotFound,
 		},
 	}
+	mockLLM := &mockClientLLM{}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			redisMock := newMockRedis()
 
-			us := NewUsecaseSimulator(redisMock, storageMock)
+			us := NewUsecaseSimulator(redisMock, storageMock, mockLLM)
 
 			sessionID, node, err := us.StartGame(context.Background(), "user_123", tt.scenarioID)
 
