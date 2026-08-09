@@ -41,6 +41,10 @@ type GetScenariosResponse struct {
 	Scenarios []*Scenario `json:"scenarios"`
 }
 
+type GenerateScenarioResponse struct {
+	ScenarioID string `json:"scenario_id"`
+}
+
 type Tag struct {
 	Question    string `json:"question"`
 	Answer      string `json:"answer"`

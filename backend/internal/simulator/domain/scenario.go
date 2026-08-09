@@ -3,6 +3,7 @@ package simulatordomain
 type Session struct {
 	SessionID  string
 	ScenarioID string
+	IsAi       bool
 	IsOver     bool
 	UserID     string
 	TotalRisk  int32
@@ -17,6 +18,7 @@ type Tag struct {
 }
 
 type Graph struct {
+	IsAi        bool
 	Scenario    Scenario
 	StartNodeID string
 	Nodes       map[string]Node
