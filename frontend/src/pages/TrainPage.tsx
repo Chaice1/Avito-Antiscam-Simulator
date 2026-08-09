@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Button, Empty, Spin } from 'antd'
 import { useNavigate } from 'react-router-dom'
-import { ShoppingCartOutlined, InboxOutlined, SafetyCertificateOutlined } from '@ant-design/icons'
+import { ShoppingCartOutlined, InboxOutlined, SafetyCertificateOutlined, ThunderboltOutlined } from '@ant-design/icons'
 import { colors, radius } from '../shared/theme'
 import { useRoleStore } from '../features/role/model/roleStore'
 import { MOCK_SCENARIOS, type Scenario } from '../features/scenarios/model/mockScenarios'
-import { getScenarios } from '../shared/api/client'
+import { generateAI, getScenarios } from '../shared/api/client'
+import { mockGenerateAI } from '../shared/api/mockGame'
+import { ensureUserId } from '../shared/api/storage'
 import FadeIn from '../shared/ui/FadeIn'
 import { useResultsStore } from '../features/results/model/resultsStore'
 
@@ -19,6 +21,21 @@ export default function TrainPage() {
   const role = useRoleStore((s) => s.role)
   const results = useResultsStore((s) => s.best)
   const [scenarios, setScenarios] = useState<Scenario[] | null>(null)
+  const [generatingId, setGeneratingId] = useState<string | null>(null)
+
+  const handleGenerate = async (scenarioId: string) => {
+    setGeneratingId(scenarioId)
+    try {
+      const userId = await ensureUserId()
+      const res = await generateAI({ scenario: scenarioId, user_id: userId })
+      navigate(`/train/${res.scenario_id}`)
+    } catch {
+      const res = await mockGenerateAI(scenarioId)
+      navigate(`/train/${res.scenario_id}`)
+    } finally {
+      setGeneratingId(null)
+    }
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -222,6 +239,16 @@ export default function TrainPage() {
                       onClick={() => navigate(`/train/${scenario.id}`)}
                     >
                       Запуск
+                    </Button>
+                    <Button
+                      block
+                      icon={<ThunderboltOutlined />}
+                      loading={generatingId === scenario.id}
+                      disabled={generatingId !== null}
+                      style={{ borderRadius: radius.small, marginTop: 8 }}
+                      onClick={() => handleGenerate(scenario.id)}
+                    >
+                      Сгенерировать ИИ-вариант
                     </Button>
                   </div>
                 </div>

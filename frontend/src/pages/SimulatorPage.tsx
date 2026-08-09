@@ -56,13 +56,12 @@ export default function SimulatorPage() {
   const addResult = useResultsStore((s) => s.addResult)
 
   useEffect(() => {
-    const sc = MOCK_SCENARIOS.find((s) => s.id === id)
-    if (!sc) return
+    if (!id) return
     let cancelled = false
     ;(async () => {
       const userId = await ensureUserId()
       try {
-        const res = await startGame({ scenario_id: sc.id, user_id: userId })
+        const res = await startGame({ scenario_id: id, user_id: userId })
         if (cancelled) return
         setCurrent(res)
         setRisk(res.risk)
@@ -71,7 +70,7 @@ export default function SimulatorPage() {
           { id: ++messageId.current, from: 'them', text: res.question, time: nowTime() },
         ])
       } catch {
-        const res = await mockStartGame(sc.id)
+        const res = await mockStartGame(id)
         if (cancelled) return
         setCurrent(res)
         setRisk(res.risk)
@@ -116,7 +115,7 @@ export default function SimulatorPage() {
     if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
   }, [messages])
 
-  if (!scenario) {
+  if (!id) {
     return (
       <div style={{ padding: 40, textAlign: 'center', color: colors.textSecondary }}>
         Сценарий не найден
@@ -181,17 +180,20 @@ export default function SimulatorPage() {
     setCurrent(final)
     setRisk(final.risk)
     const score = Math.max(0, 100 - Math.min(100, final.risk))
-    addResult({
-      scenarioId: scenario.id,
-      scenarioTitle: scenario.title,
-      score,
-      grade: final.final_grade,
-      createdAt: new Date().toISOString(),
-      tags: final.tags,
-    })
+    // AI-сценарий — разовая тренировка: результат показываем, но не сохраняем
+    if (scenario) {
+      addResult({
+        scenarioId: id ?? '',
+        scenarioTitle: scenario.title,
+        score,
+        grade: final.final_grade,
+        createdAt: new Date().toISOString(),
+        tags: final.tags,
+      })
+    }
     setTimeout(() => {
       navigate(`/result/${final.session_id}`, {
-        state: { scenarioId: scenario.id, final },
+        state: { scenarioId: id ?? '', final },
       })
     }, 700)
   }
@@ -233,7 +235,7 @@ export default function SimulatorPage() {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ fontWeight: 700, fontSize: 15, color: colors.textMain }}>
-                  {scenario.sellerName}
+                  {scenario?.sellerName ?? 'Собеседник'}
                 </span>
                 <span style={{ color: colors.textSecondary, fontSize: 12 }}>
                   в сети {nowTime()}
@@ -248,7 +250,7 @@ export default function SimulatorPage() {
                   textOverflow: 'ellipsis',
                 }}
               >
-                {scenario.productTitle} · {scenario.price}
+                {scenario?.productTitle ?? 'Сценарий'} · {scenario?.price ?? ''}
               </div>
             </div>
             <div

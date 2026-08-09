@@ -1,4 +1,11 @@
-import type { GameFinal, GameOption, GameStartResponse, GameStepResponse, GameTag } from './types'
+import type {
+  GameFinal,
+  GameOption,
+  GameStartResponse,
+  GameStepResponse,
+  GameTag,
+  GenerateAIResponse,
+} from './types'
 
 const Q1 =
   'Привет! Телефон ещё свободен. Чтобы забронировать, переведи аванс 5000₽ на карту — сразу отправлю доставку'
@@ -38,6 +45,22 @@ function toMistakes(choices: MockSession['choices']): GameTag[] {
       explanation: RISK_EXPLANATIONS[c.answerId],
     }))
 }
+
+export async function mockGenerateAI(scenarioId: string): Promise<GenerateAIResponse> {
+  const scenario = MOCK_SCENARIOS_DISPLAY.find((s) => s.id === scenarioId)
+  return {
+    scenario_id: `ai_${scenarioId}_${Math.random().toString(36).slice(2, 6)}`,
+    title: scenario ? `AI: ${scenario.title}` : `AI-сценарий`,
+    role: 'buyer',
+  }
+}
+
+const MOCK_SCENARIOS_DISPLAY: { id: string; title: string }[] = [
+  { id: 'buyer_iphone', title: 'Покупка iPhone 14 Pro Max' },
+  { id: 'seller_card', title: 'Продажа банковской карты' },
+  { id: 'seller_gpu', title: 'Продажа видеокарты' },
+  { id: 'tenant_flat', title: 'Аренда квартиры' },
+]
 
 export async function mockStartGame(scenarioId: string): Promise<GameStartResponse> {
   const sessionId = `mock-${scenarioId}-${Math.random().toString(36).slice(2, 8)}`

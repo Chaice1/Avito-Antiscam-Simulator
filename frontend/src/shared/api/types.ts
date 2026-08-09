@@ -72,3 +72,14 @@ export interface ScenarioSummary {
 export interface ScenariosResponse {
   scenarios: ScenarioSummary[]
 }
+
+export interface GenerateAIRequest {
+  scenario: string
+  user_id: string
+}
+
+export interface GenerateAIResponse {
+  scenario_id: string
+  title: string
+  role: 'buyer' | 'seller'
+}

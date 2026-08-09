@@ -3,6 +3,8 @@ import type {
   GameStartResponse,
   GameStepRequest,
   GameStepResponse,
+  GenerateAIRequest,
+  GenerateAIResponse,
   HistoryResponse,
   RegisterRequest,
   RegisterResponse,
@@ -36,6 +38,13 @@ export function getHistory(userId: string): Promise<HistoryResponse> {
 
 export function startGame(payload: GameStartRequest): Promise<GameStartResponse> {
   return request<GameStartResponse>('/game/start', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+export function generateAI(payload: GenerateAIRequest): Promise<GenerateAIResponse> {
+  return request<GenerateAIResponse>('/game/generate_ai', {
     method: 'POST',
     body: JSON.stringify(payload),
   })
