@@ -13,14 +13,14 @@ import (
 	"time"
 )
 
-type clientLLM struct {
+type ClientLLM struct {
 	key      string
 	folderID string
 	client   *http.Client
 }
 
-func NewClientLLM(key string, folderID string) *clientLLM {
-	return &clientLLM{
+func NewClientLLM(key string, folderID string) *ClientLLM {
+	return &ClientLLM{
 		key:      key,
 		folderID: folderID,
 		client: &http.Client{
@@ -60,7 +60,7 @@ const Prompt = `Ты — генератор сценариев для трена
   }
 }`
 
-func (cllm *clientLLM) GenerateScenario(ctx context.Context) (*simulatordto.Graph, error) {
+func (cllm *ClientLLM) GenerateScenario(ctx context.Context) (*simulatordto.Graph, error) {
 	reqBody := map[string]interface{}{
 		"modelUri": fmt.Sprintf("gpt://%s/yandexgpt-lite", cllm.folderID),
 		"completionOptions": map[string]interface{}{
@@ -104,7 +104,7 @@ func (cllm *clientLLM) GenerateScenario(ctx context.Context) (*simulatordto.Grap
 	}()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, simulatordomain.ErrApiAi
+		return nil, simulatordomain.ErrAPIAi
 	}
 
 	var aiResp struct {
