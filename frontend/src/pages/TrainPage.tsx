@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Button, Empty, Spin } from 'antd'
 import { useNavigate } from 'react-router-dom'
-import { ShoppingCartOutlined, InboxOutlined, SafetyCertificateOutlined, ThunderboltOutlined } from '@ant-design/icons'
+import {
+  ShoppingCartOutlined,
+  InboxOutlined,
+  SafetyCertificateOutlined,
+  ThunderboltOutlined,
+} from '@ant-design/icons'
 import { colors, radius } from '../shared/theme'
 import { useRoleStore } from '../features/role/model/roleStore'
 import { MOCK_SCENARIOS, type Scenario } from '../features/scenarios/model/mockScenarios'
