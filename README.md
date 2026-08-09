@@ -5,7 +5,7 @@
 ## Доступ к проекту (Продакшн)
 
 Проект развернут и доступен для тестирования по ссылке:
-`https://frontend-production-65d9.up.railway.app`
+`https://antiscum-sim-7cefdfmjg8kd.antiscum-sim.deno.net/`
 
 ## Инструкция по локальному запуску
 
