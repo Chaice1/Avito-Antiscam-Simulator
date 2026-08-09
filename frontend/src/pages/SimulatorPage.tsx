@@ -4,11 +4,12 @@ import { Avatar, Button, FloatButton } from 'antd'
 import {
   ArrowLeftOutlined,
   CheckOutlined,
+  ClockCircleOutlined,
   DownOutlined,
   MoreOutlined,
   UserOutlined,
 } from '@ant-design/icons'
-import { colors } from '../shared/theme'
+import { colors, radius } from '../shared/theme'
 import { MOCK_SCENARIOS } from '../features/scenarios/model/mockScenarios'
 import { startGame, stepGame } from '../shared/api/client'
 import { mockGameStep, mockStartGame } from '../shared/api/mockGame'
@@ -28,6 +29,14 @@ function nowTime() {
   return new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
 }
 
+const GAME_TIME_SEC = 15 * 60
+
+function formatTime(sec: number) {
+  const m = Math.floor(sec / 60)
+  const s = sec % 60
+  return `${m}:${String(s).padStart(2, '0')}`
+}
+
 export default function SimulatorPage() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -39,6 +48,9 @@ export default function SimulatorPage() {
   const [sending, setSending] = useState(false)
   const [error, setError] = useState(false)
   const [showDown, setShowDown] = useState(false)
+  const [timeLeft, setTimeLeft] = useState(GAME_TIME_SEC)
+  const [timeUp, setTimeUp] = useState(false)
+  const [runId, setRunId] = useState(0)
   const scrollRef = useRef<HTMLDivElement>(null)
   const messageId = useRef(0)
   const addResult = useResultsStore((s) => s.addResult)
@@ -54,6 +66,7 @@ export default function SimulatorPage() {
         if (cancelled) return
         setCurrent(res)
         setRisk(res.risk)
+        setTimeLeft(GAME_TIME_SEC)
         setMessages([
           { id: ++messageId.current, from: 'them', text: res.question, time: nowTime() },
         ])
@@ -62,6 +75,7 @@ export default function SimulatorPage() {
         if (cancelled) return
         setCurrent(res)
         setRisk(res.risk)
+        setTimeLeft(GAME_TIME_SEC)
         setMessages([
           { id: ++messageId.current, from: 'them', text: res.question, time: nowTime() },
         ])
@@ -72,7 +86,30 @@ export default function SimulatorPage() {
     return () => {
       cancelled = true
     }
-  }, [id])
+  }, [id, runId])
+
+  // Отсчёт времени на сценарий
+  useEffect(() => {
+    if (!current || current.is_over || timeUp) return
+    const timer = setInterval(() => setTimeLeft((s) => Math.max(0, s - 1)), 1000)
+    return () => clearInterval(timer)
+  }, [current, timeUp])
+
+  // Время вышло — блокируем ввод
+  useEffect(() => {
+    if (timeLeft === 0 && current && !current.is_over) setTimeUp(true)
+  }, [timeLeft, current])
+
+  const restart = () => {
+    setMessages([])
+    setCurrent(null)
+    setRisk(0)
+    setError(false)
+    setSending(false)
+    setTimeUp(false)
+    setTimeLeft(GAME_TIME_SEC)
+    setRunId((r) => r + 1)
+  }
 
   useEffect(() => {
     const el = scrollRef.current
@@ -99,7 +136,7 @@ export default function SimulatorPage() {
   }
 
   const handleSelect = async (option: GameOption) => {
-    if (!current || current.is_over || sending) return
+    if (!current || current.is_over || sending || timeUp) return
     setSending(true)
     setMessages((prev) => [
       ...prev,
@@ -150,6 +187,7 @@ export default function SimulatorPage() {
       score,
       grade: final.final_grade,
       createdAt: new Date().toISOString(),
+      tags: final.tags,
     })
     setTimeout(() => {
       navigate(`/result/${final.session_id}`, {
@@ -212,6 +250,34 @@ export default function SimulatorPage() {
               >
                 {scenario.productTitle} · {scenario.price}
               </div>
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                background: timeLeft <= 60 ? '#FEF2F2' : colors.cardBg,
+                borderRadius: 999,
+                padding: '4px 10px',
+                flexShrink: 0,
+              }}
+            >
+              <ClockCircleOutlined
+                style={{
+                  fontSize: 13,
+                  color: timeLeft <= 60 ? colors.riskHigh : colors.textSecondary,
+                }}
+              />
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  fontVariantNumeric: 'tabular-nums',
+                  color: timeLeft <= 60 ? colors.riskHigh : colors.textMain,
+                }}
+              >
+                {formatTime(timeLeft)}
+              </span>
             </div>
             <Button
               type="text"
@@ -350,29 +416,73 @@ export default function SimulatorPage() {
                 marginBottom: 10,
               }}
             >
-              Выберите вариант ответа
+              {timeUp ? 'Время вышло' : 'Выберите вариант ответа'}
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {currentOptions.map((option) => (
-                <Button
-                  key={option.id}
-                  block
-                  shape="round"
-                  type="default"
-                  disabled={sending || !!error}
-                  onClick={() => handleSelect(option)}
+            {timeUp ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div
                   style={{
-                    borderRadius: 999,
-                    borderColor: colors.primary,
-                    borderWidth: 1.5,
-                    color: colors.primary,
-                    background: '#fff',
+                    background: '#FEF2F2',
+                    borderRadius: radius.small,
+                    padding: 12,
+                    fontSize: 14,
+                    lineHeight: 1.5,
+                    color: colors.textMain,
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 10,
                   }}
                 >
-                  {option.text}
+                  <ClockCircleOutlined
+                    style={{ color: colors.riskHigh, fontSize: 18, marginTop: 1 }}
+                  />
+                  <span>
+                    <b>Время на сценарий истекло.</b>
+                    <br />
+                    Попытка не засчитана — попробуйте ещё раз или выберите другой сценарий.
+                  </span>
+                </div>
+                <Button
+                  type="primary"
+                  block
+                  shape="round"
+                  style={{ borderRadius: 999, fontWeight: 700 }}
+                  onClick={restart}
+                >
+                  Попробовать ещё раз
                 </Button>
-              ))}
-            </div>
+                <Button
+                  block
+                  shape="round"
+                  style={{ borderRadius: 999 }}
+                  onClick={() => navigate('/train')}
+                >
+                  К списку сценариев
+                </Button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {currentOptions.map((option) => (
+                  <Button
+                    key={option.id}
+                    block
+                    shape="round"
+                    type="default"
+                    disabled={sending || !!error}
+                    onClick={() => handleSelect(option)}
+                    style={{
+                      borderRadius: 999,
+                      borderColor: colors.primary,
+                      borderWidth: 1.5,
+                      color: colors.primary,
+                      background: '#fff',
+                    }}
+                  >
+                    {option.text}
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

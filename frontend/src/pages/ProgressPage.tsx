@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Button, Empty } from 'antd'
+import { Button, Empty, Modal } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import { RiseOutlined } from '@ant-design/icons'
 import { colors, radius } from '../shared/theme'
@@ -60,6 +60,7 @@ export default function ProgressPage() {
             score,
             grade: h.final_grade,
             createdAt: h.created_at,
+            tags: h.tags,
           }
         })
         const best: Record<string, ResultEntry> = {}
@@ -78,6 +79,7 @@ export default function ProgressPage() {
 
   const best = remote ? remote.best : localBest
   const attempts = remote ? remote.attempts : localAttempts
+  const [selectedAttempt, setSelectedAttempt] = useState<Attempt | null>(null)
 
   const roleStats = ['buyer', 'seller']
     .map((role) => {
@@ -277,18 +279,106 @@ export default function ProgressPage() {
             </h2>
             <div>
               {attempts.map((attempt, i) => (
-                <HistoryRow key={i} attempt={attempt} />
+                <HistoryRow key={i} attempt={attempt} onClick={() => setSelectedAttempt(attempt)} />
               ))}
             </div>
           </>
         )}
+
+        <Modal
+          open={!!selectedAttempt}
+          onCancel={() => setSelectedAttempt(null)}
+          footer={null}
+          title={selectedAttempt ? selectedAttempt.scenarioTitle : ''}
+        >
+          {selectedAttempt && (
+            <div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 16,
+                }}
+              >
+                <div>
+                  <div style={{ color: colors.textSecondary, fontSize: 13 }}>
+                    {selectedAttempt.grade} · {formatDate(selectedAttempt.createdAt)}
+                  </div>
+                  <div
+                    style={{
+                      fontWeight: 800,
+                      fontSize: 28,
+                      color: scoreColor(selectedAttempt.score),
+                    }}
+                  >
+                    {selectedAttempt.score}%
+                  </div>
+                </div>
+                <Button
+                  type="primary"
+                  style={{ borderRadius: radius.small }}
+                  onClick={() => {
+                    const id = selectedAttempt.scenarioId
+                    setSelectedAttempt(null)
+                    navigate(`/train/${id}`)
+                  }}
+                >
+                  Повторить
+                </Button>
+              </div>
+
+              {selectedAttempt.tags && selectedAttempt.tags.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {selectedAttempt.tags.map((tag, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        background: colors.cardBg,
+                        border: `1px solid ${colors.border}`,
+                        borderRadius: radius.card,
+                        padding: 14,
+                      }}
+                    >
+                      <div style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 4 }}>
+                        Ситуация
+                      </div>
+                      <div style={{ fontSize: 14, color: colors.textMain, marginBottom: 10 }}>
+                        {tag.question}
+                      </div>
+                      <div style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 4 }}>
+                        Твой ответ
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 14,
+                          fontWeight: 700,
+                          color: colors.riskHigh,
+                          marginBottom: 10,
+                        }}
+                      >
+                        {tag.answer}
+                      </div>
+                      <div style={{ fontSize: 14, color: colors.textMain, lineHeight: 1.5 }}>
+                        {tag.explanation}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p style={{ color: colors.textSecondary, fontSize: 14 }}>
+                  Ошибок нет — ты отлично справился!
+                </p>
+              )}
+            </div>
+          )}
+        </Modal>
       </div>
     </FadeIn>
   )
 }
 
-function HistoryRow({ attempt }: { attempt: Attempt }) {
-  const navigate = useNavigate()
+function HistoryRow({ attempt, onClick }: { attempt: Attempt; onClick: () => void }) {
   return (
     <div
       style={{
@@ -299,7 +389,7 @@ function HistoryRow({ attempt }: { attempt: Attempt }) {
         borderBottom: `1px solid ${colors.border}`,
         cursor: 'pointer',
       }}
-      onClick={() => navigate(`/train/${attempt.scenarioId}`)}
+      onClick={onClick}
     >
       <div
         style={{

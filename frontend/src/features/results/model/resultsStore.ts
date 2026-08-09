@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import type { GameTag } from '../../../shared/api/types'
 
 export interface ResultEntry {
   score: number
@@ -9,6 +10,7 @@ export interface ResultEntry {
 export interface Attempt extends ResultEntry {
   scenarioId: string
   scenarioTitle: string
+  tags?: GameTag[]
 }
 
 interface ResultsState {
