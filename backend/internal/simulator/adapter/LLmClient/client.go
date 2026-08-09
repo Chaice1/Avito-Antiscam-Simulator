@@ -19,7 +19,7 @@ type ClientLLM struct {
 	client   *http.Client
 }
 
-func NewClientLLM(key string, folderID string) *ClientLLM {
+func NewClientLLM(key, folderID string) *ClientLLM {
 	return &ClientLLM{
 		key:      key,
 		folderID: folderID,
