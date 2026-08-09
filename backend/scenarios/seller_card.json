@@ -1,6 +1,6 @@
 {
   "scenario": {
-    "scenario_id": "seller_tires",
+    "scenario_id": "seller_card",
     "title": "Продажа комплекта зимней резины",
     "role": "seller"
   },
