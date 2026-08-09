@@ -13,3 +13,7 @@ redis:
 
 db:
   dsn: "postgres://antiscam_user:antiscam_password@localhost:5432/antiscam_db?sslmode=disable"
+
+llm:
+  key: "YOUR_KEY"
+  folder_id: "YOUD_FOLDER_ID"
