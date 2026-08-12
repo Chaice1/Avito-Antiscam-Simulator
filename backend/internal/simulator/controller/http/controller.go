@@ -43,7 +43,7 @@ func NewSimulatorController(su SimulatorUsecase, ls LocalStorage, us UserStorage
 
 func (sc *SimulatorController) ResumeGame() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		sessionID := r.URL.Query().Get("session")
+		sessionID := r.URL.Query().Get("sessionID")
 
 		if sessionID == "" {
 			writeError(w, http.StatusBadRequest, "query param is empty ", "input query param")
