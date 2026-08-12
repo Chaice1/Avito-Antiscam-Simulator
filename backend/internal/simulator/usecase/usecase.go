@@ -85,6 +85,7 @@ func (us *UsecaseSimulator) StartGame(ctx context.Context, userID, scenarioID st
 
 	return sessionID.String(), &nodeID, nil
 }
+
 func (us *UsecaseSimulator) ProcessStep(ctx context.Context, answerID, sessionID string) (*simulatordomain.Node, *simulatordomain.Session, error) {
 
 	session, err := us.r.GetSessionInfo(ctx, sessionID)
@@ -103,6 +104,10 @@ func (us *UsecaseSimulator) ProcessStep(ctx context.Context, answerID, sessionID
 
 	if session.IsOver {
 		return &currentNode, session, simulatordomain.ErrGameIsOver
+	}
+
+	if answerID == "" {
+		return &currentNode, session, nil
 	}
 
 	var option *simulatordomain.Option

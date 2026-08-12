@@ -31,7 +31,8 @@ type ProcessStepResponse struct {
 	SessionID  string      `json:"session_id"`
 	Risk       int32       `json:"risk"`
 	FinalGrade string      `json:"final_grade,omitempty"`
-	Tags       []Tag       `json:"tags,omitempty"`
+	Mistakes   []Tag       `json:"mistakes,omitempty"`
+	Insights   []Tag       `json:"insights,omitempty"`
 	IsOver     bool        `json:"is_over"`
 	Question   string      `json:"question,omitempty"`
 	Options    []OptionDto `json:"options,omitempty"`
