@@ -41,6 +41,21 @@ func NewSimulatorController(su SimulatorUsecase, ls LocalStorage, us UserStorage
 	}
 }
 
+func (sc *SimulatorController) ResumeGame() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		sessionID := r.URL.Query().Get("session")
+
+		if sessionID == "" {
+			writeError(w, http.StatusBadRequest, "query param is empty ", "input query param")
+			return
+		}
+		node, session, err := sc.su.ProcessStep(context.Background(), "", sessionID)
+
+		sc.writeStateGameResponse(r.Context(), w, session, err, node)
+
+	}
+}
+
 func (sc *SimulatorController) StartGame() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -98,111 +113,8 @@ func (sc *SimulatorController) ProcessStep() http.HandlerFunc {
 		}
 
 		node, session, err := sc.su.ProcessStep(r.Context(), req.AnswerID, req.SessiondID)
-		if err != nil {
-			switch {
-			case errors.Is(err, simulatordomain.ErrGameIsOver):
 
-				var resp simulatordto.ProcessStepResponse
-
-				var FinalGrade string
-
-				switch {
-				case session.TotalRisk == 0:
-					FinalGrade = "Эксперт по безопасности"
-				case session.TotalRisk < 50:
-					FinalGrade = "Осторожный пользователь"
-				case session.TotalRisk < 100:
-					FinalGrade = "Доверчивый пользователь"
-				default:
-					FinalGrade = "Жертва мошенничества"
-				}
-
-				Tags := make([]simulatordto.Tag, len(session.Tags))
-
-				UserTags := make([]userdomain.Tag, len(session.Tags))
-				for i, tag := range session.Tags {
-
-					respTag := simulatordto.Tag{
-						Question: tag.Question,
-						Answer:   tag.Answer,
-					}
-
-					userTag := userdomain.Tag{
-						Question: tag.Question,
-						Answer:   tag.Answer,
-					}
-
-					if val, ok := simulatordomain.TagDictionary[tag.TagID]; ok {
-						respTag.Explanation = val
-						userTag.Explanation = val
-					}
-
-					Tags[i] = respTag
-					UserTags[i] = userTag
-				}
-				isAi := false
-				if strings.HasPrefix(session.ScenarioID, "ai_") {
-					isAi = true
-				}
-
-				if !isAi {
-					err = sc.us.SaveTrainingResult(r.Context(), &userdomain.TrainingResult{
-						SessionID:  session.SessionID,
-						ScenarioID: session.ScenarioID,
-						UserID:     session.UserID,
-						TotalRisk:  session.TotalRisk,
-						FinalGrade: FinalGrade,
-						Tags:       UserTags,
-					})
-
-					if err != nil {
-						slog.Error("failed to save training Result", "error", err)
-					}
-				}
-
-				resp = simulatordto.ProcessStepResponse{
-					SessionID:  session.SessionID,
-					Risk:       session.TotalRisk,
-					FinalGrade: FinalGrade,
-					Tags:       Tags,
-					IsOver:     session.IsOver,
-					Question:   node.Question,
-				}
-				writeJSON(w, http.StatusOK, resp)
-				return
-			case errors.Is(err, simulatordomain.ErrSessionNotFound):
-				writeError(w, http.StatusGone, err.Error(), "Время сессии истекло,начните заново")
-				return
-
-			case errors.Is(err, simulatordomain.ErrUnknownAnswer):
-				writeError(w, http.StatusBadRequest, err.Error(), "Выберите один из данных ответов")
-				return
-
-			default:
-				writeError(w, http.StatusInternalServerError, err.Error(), "Ошибка на сервере, попробуйте ещё раз ")
-				return
-			}
-
-		}
-
-		options := []simulatordto.OptionDto{}
-
-		for _, option := range node.Options {
-			options = append(options, simulatordto.OptionDto{
-				ID:   option.ID,
-				Text: option.Text,
-			})
-		}
-
-		resp := simulatordto.ProcessStepResponse{
-			SessionID: session.SessionID,
-			Risk:      session.TotalRisk,
-			IsOver:    session.IsOver,
-			Question:  node.Question,
-			Options:   options,
-		}
-
-		writeJSON(w, http.StatusOK, resp)
+		sc.writeStateGameResponse(r.Context(), w, session, err, node)
 
 	}
 }
@@ -269,4 +181,117 @@ func writeError(w http.ResponseWriter, status int, errorCode, message string) {
 		"error":   errorCode,
 		"message": message,
 	})
+}
+
+func (sc *SimulatorController) writeStateGameResponse(ctx context.Context, w http.ResponseWriter, session *simulatordomain.Session, err error, node *simulatordomain.Node) {
+	if err != nil {
+		switch {
+		case errors.Is(err, simulatordomain.ErrGameIsOver):
+
+			var resp simulatordto.ProcessStepResponse
+
+			var FinalGrade string
+
+			switch {
+			case session.TotalRisk == 0:
+				FinalGrade = "Эксперт по безопасности"
+			case session.TotalRisk < 50:
+				FinalGrade = "Осторожный пользователь"
+			case session.TotalRisk < 100:
+				FinalGrade = "Доверчивый пользователь"
+			default:
+				FinalGrade = "Жертва мошенничества"
+			}
+
+			Mistakes := make([]simulatordto.Tag, 0)
+			Insights := make([]simulatordto.Tag, 0)
+			UserTags := make([]userdomain.Tag, len(session.Tags))
+			for i, tag := range session.Tags {
+
+				respTag := simulatordto.Tag{
+					Question: tag.Question,
+					Answer:   tag.Answer,
+				}
+
+				userTag := userdomain.Tag{
+					Question: tag.Question,
+					Answer:   tag.Answer,
+				}
+
+				if val, ok := simulatordomain.TagDictionary[tag.TagID]; ok {
+					respTag.Explanation = val
+					userTag.Explanation = val
+				}
+
+				if strings.HasPrefix(tag.TagID, "GOOD") {
+					Insights = append(Insights, respTag)
+				} else {
+					Mistakes = append(Mistakes, respTag)
+				}
+				UserTags[i] = userTag
+			}
+			isAi := false
+			if strings.HasPrefix(session.ScenarioID, "ai_") {
+				isAi = true
+			}
+
+			if !isAi {
+				err = sc.us.SaveTrainingResult(ctx, &userdomain.TrainingResult{
+					SessionID:  session.SessionID,
+					ScenarioID: session.ScenarioID,
+					UserID:     session.UserID,
+					TotalRisk:  session.TotalRisk,
+					FinalGrade: FinalGrade,
+					Tags:       UserTags,
+				})
+
+				if err != nil {
+					slog.Error("failed to save training Result", "error", err)
+				}
+			}
+
+			resp = simulatordto.ProcessStepResponse{
+				SessionID:  session.SessionID,
+				Risk:       session.TotalRisk,
+				FinalGrade: FinalGrade,
+				Mistakes:   Mistakes,
+				Insights:   Insights,
+				IsOver:     session.IsOver,
+				Question:   node.Question,
+			}
+			writeJSON(w, http.StatusOK, resp)
+			return
+		case errors.Is(err, simulatordomain.ErrSessionNotFound):
+			writeError(w, http.StatusGone, err.Error(), "Время сессии истекло,начните заново")
+			return
+
+		case errors.Is(err, simulatordomain.ErrUnknownAnswer):
+			writeError(w, http.StatusBadRequest, err.Error(), "Выберите один из данных ответов")
+			return
+
+		default:
+			writeError(w, http.StatusInternalServerError, err.Error(), "Ошибка на сервере, попробуйте ещё раз ")
+			return
+		}
+	}
+
+	options := []simulatordto.OptionDto{}
+
+	for _, option := range node.Options {
+		options = append(options, simulatordto.OptionDto{
+			ID:   option.ID,
+			Text: option.Text,
+		})
+	}
+
+	resp := simulatordto.ProcessStepResponse{
+		SessionID: session.SessionID,
+		Risk:      session.TotalRisk,
+		IsOver:    session.IsOver,
+		Question:  node.Question,
+		Options:   options,
+	}
+
+	writeJSON(w, http.StatusOK, resp)
+
 }

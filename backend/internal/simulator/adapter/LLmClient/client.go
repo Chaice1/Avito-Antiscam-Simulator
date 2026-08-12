@@ -55,7 +55,7 @@ const Prompt = `Ты — генератор сценариев для трена
         { "id": "ans_2", "text": "Опасный ответ", "risk": 100, "tag_id": "CLICKED_PHISHING_LINK", "next_node_id": "game_over" }
       ]
     },
-    "node_win": { "question": "Вы не дали себя обмануть.", "options": [] },
+    "node_win_safe": { "question": "Вы не дали себя обмануть.", "options": [] },
     "game_over": { "question": "Мошенник украл ваши деньги.", "options": [] }
   }
 }`
@@ -134,6 +134,23 @@ func (cllm *ClientLLM) GenerateScenario(ctx context.Context) (*simulatordto.Grap
 	var graphDto simulatordto.Graph
 	if err := json.Unmarshal([]byte(jsonText), &graphDto); err != nil {
 		return nil, err
+	}
+
+	isSafeNode := false
+	isLoseNode := false
+
+	for nodeID := range graphDto.Nodes {
+		switch {
+		case nodeID == "game_over":
+			isLoseNode = true
+		case nodeID == "node_win_safe":
+			isSafeNode = true
+		}
+
+	}
+
+	if !isSafeNode || !isLoseNode {
+		return nil, simulatordomain.ErrEndNodeNotFound
 	}
 
 	graphDto.Scenario.ScenarioID = fmt.Sprintf("ai_%d", time.Now().Unix())
