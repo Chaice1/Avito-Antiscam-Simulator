@@ -140,10 +140,10 @@ func (cllm *ClientLLM) GenerateScenario(ctx context.Context) (*simulatordto.Grap
 	isLoseNode := false
 
 	for nodeID := range graphDto.Nodes {
-		switch {
-		case nodeID == "game_over":
+		switch nodeID {
+		case "game_over":
 			isLoseNode = true
-		case nodeID == "node_win_safe":
+		case "node_win_safe":
 			isSafeNode = true
 		}
 
