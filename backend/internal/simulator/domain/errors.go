@@ -12,4 +12,5 @@ var (
 	ErrServiceIsUnavailable = errors.New("service is unavailable")
 	ErrEmptyAiResponse      = errors.New("empty response from ai")
 	ErrAPIAi                = errors.New("error api ai")
+	ErrEndNodeNotFound      = errors.New("end node not found")
 )
