@@ -23,9 +23,9 @@ func TestIntegration_StartAndProcess(t *testing.T) {
 	require.NoError(t, err)
 
 	defer func() {
-		err := redisContainer.Terminate(ctx)
+		errTerminate := redisContainer.Terminate(ctx)
 		if err != nil {
-			slog.Error("failed to stop and remove container")
+			slog.Error("failed to stop and remove container", "error", errTerminate)
 		}
 	}()
 
