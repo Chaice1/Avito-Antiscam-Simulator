@@ -60,7 +60,8 @@ export default function ProgressPage() {
             score,
             grade: h.final_grade,
             createdAt: h.created_at,
-            tags: h.tags,
+            mistakes: h.tags,
+            insights: h.insights,
           }
         })
         const best: Record<string, ResultEntry> = {}
@@ -328,48 +329,111 @@ export default function ProgressPage() {
                 </Button>
               </div>
 
-              {selectedAttempt.tags && selectedAttempt.tags.length > 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {selectedAttempt.tags.map((tag, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        background: colors.cardBg,
-                        border: `1px solid ${colors.border}`,
-                        borderRadius: radius.card,
-                        padding: 14,
-                      }}
-                    >
-                      <div style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 4 }}>
-                        Ситуация
-                      </div>
-                      <div style={{ fontSize: 14, color: colors.textMain, marginBottom: 10 }}>
-                        {tag.question}
-                      </div>
-                      <div style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 4 }}>
-                        Твой ответ
-                      </div>
+              {selectedAttempt.insights && selectedAttempt.insights.length > 0 && (
+                <div style={{ marginBottom: 16 }}>
+                  <h3
+                    style={{
+                      fontSize: 15,
+                      fontWeight: 700,
+                      color: colors.riskLow,
+                      marginBottom: 10,
+                    }}
+                  >
+                    Правильные решения
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {selectedAttempt.insights.map((tag, i) => (
                       <div
+                        key={i}
                         style={{
-                          fontSize: 14,
-                          fontWeight: 700,
-                          color: colors.riskHigh,
-                          marginBottom: 10,
+                          background: colors.cardBg,
+                          border: `1px solid ${colors.border}`,
+                          borderRadius: radius.card,
+                          padding: 14,
                         }}
                       >
-                        {tag.answer}
+                        <div style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 4 }}>
+                          Ситуация
+                        </div>
+                        <div style={{ fontSize: 14, color: colors.textMain, marginBottom: 10 }}>
+                          {tag.question}
+                        </div>
+                        <div style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 4 }}>
+                          Твой ответ
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 14,
+                            fontWeight: 700,
+                            color: colors.riskLow,
+                            marginBottom: 10,
+                          }}
+                        >
+                          {tag.answer}
+                        </div>
+                        <div style={{ fontSize: 14, color: colors.textMain, lineHeight: 1.5 }}>
+                          {tag.explanation}
+                        </div>
                       </div>
-                      <div style={{ fontSize: 14, color: colors.textMain, lineHeight: 1.5 }}>
-                        {tag.explanation}
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              ) : (
+              )}
+
+              {selectedAttempt.mistakes && selectedAttempt.mistakes.length > 0 ? (
+                <div>
+                  <h3
+                    style={{
+                      fontSize: 15,
+                      fontWeight: 700,
+                      color: colors.textMain,
+                      marginBottom: 10,
+                    }}
+                  >
+                    Разбор ответов
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {selectedAttempt.mistakes.map((tag, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          background: colors.cardBg,
+                          border: `1px solid ${colors.border}`,
+                          borderRadius: radius.card,
+                          padding: 14,
+                        }}
+                      >
+                        <div style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 4 }}>
+                          Ситуация
+                        </div>
+                        <div style={{ fontSize: 14, color: colors.textMain, marginBottom: 10 }}>
+                          {tag.question}
+                        </div>
+                        <div style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 4 }}>
+                          Твой ответ
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 14,
+                            fontWeight: 700,
+                            color: colors.textMain,
+                            marginBottom: 10,
+                          }}
+                        >
+                          {tag.answer}
+                        </div>
+                        <div style={{ fontSize: 14, color: colors.textMain, lineHeight: 1.5 }}>
+                          {tag.explanation || 'Без пояснения'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : !selectedAttempt.insights || selectedAttempt.insights.length === 0 ? (
                 <p style={{ color: colors.textSecondary, fontSize: 14 }}>
                   Ошибок нет — ты отлично справился!
                 </p>
-              )}
+              ) : null}
             </div>
           )}
         </Modal>

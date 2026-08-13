@@ -54,6 +54,10 @@ export function stepGame(payload: GameStepRequest): Promise<GameStepResponse> {
   return request<GameStepResponse>('/game/step', { method: 'POST', body: JSON.stringify(payload) })
 }
 
+export function resumeGame(sessionId: string): Promise<GameStepResponse> {
+  return request<GameStepResponse>(`/game/resume?sessionID=${encodeURIComponent(sessionId)}`)
+}
+
 export function getScenarios(role?: 'buyer' | 'seller'): Promise<ScenariosResponse> {
   const query = role ? `?role=${role}` : ''
   return request<ScenariosResponse>(`/scenarios${query}`)

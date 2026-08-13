@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { ConfigProvider, Spin } from 'antd'
+import { App as AntdApp, ConfigProvider, Spin } from 'antd'
 import Layout from './app/Layout'
 import LandingPage from './pages/LandingPage'
 import { colors } from './shared/theme'
@@ -40,17 +40,19 @@ export default function App() {
           },
         }}
       >
-        <Suspense fallback={<PageFallback />}>
-          <Routes>
-            <Route path="/train/:id" element={<SimulatorPage />} />
-            <Route element={<Layout />}>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/train" element={<TrainPage />} />
-              <Route path="/progress" element={<ProgressPage />} />
-              <Route path="/result/:attemptId" element={<ResultPage />} />
-            </Route>
-          </Routes>
-        </Suspense>
+        <AntdApp>
+          <Suspense fallback={<PageFallback />}>
+            <Routes>
+              <Route path="/train/:id" element={<SimulatorPage />} />
+              <Route element={<Layout />}>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/train" element={<TrainPage />} />
+                <Route path="/progress" element={<ProgressPage />} />
+                <Route path="/result/:attemptId" element={<ResultPage />} />
+              </Route>
+            </Routes>
+          </Suspense>
+        </AntdApp>
       </ConfigProvider>
     </BrowserRouter>
   )

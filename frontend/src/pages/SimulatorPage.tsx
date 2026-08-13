@@ -11,12 +11,26 @@ import {
 } from '@ant-design/icons'
 import { colors, radius } from '../shared/theme'
 import { MOCK_SCENARIOS } from '../features/scenarios/model/mockScenarios'
-import { startGame, stepGame } from '../shared/api/client'
+import { startGame, stepGame, resumeGame } from '../shared/api/client'
 import { mockGameStep, mockStartGame } from '../shared/api/mockGame'
 import { ensureUserId } from '../shared/api/storage'
 import type { GameFinal, GameOption, GameStepResponse } from '../shared/api/types'
 import FadeIn from '../shared/ui/FadeIn'
 import { useResultsStore } from '../features/results/model/resultsStore'
+
+const GAME_SESSION_KEY = (scenarioId: string) => `antiscam_session_${scenarioId}`
+
+function saveSession(scenarioId: string, sessionId: string) {
+  localStorage.setItem(GAME_SESSION_KEY(scenarioId), sessionId)
+}
+
+function loadSession(scenarioId: string): string | null {
+  return localStorage.getItem(GAME_SESSION_KEY(scenarioId))
+}
+
+function clearSession(scenarioId: string) {
+  localStorage.removeItem(GAME_SESSION_KEY(scenarioId))
+}
 
 interface ChatMessage {
   id: number
@@ -61,8 +75,28 @@ export default function SimulatorPage() {
     ;(async () => {
       const userId = await ensureUserId()
       try {
-        const res = await startGame({ scenario_id: id, user_id: userId })
+        let res: GameStepResponse | null = null
+        const saved = loadSession(id)
+        if (saved) {
+          try {
+            const r = await resumeGame(saved)
+            if (!cancelled && r.is_over) {
+              // Сессия уже завершена — показываем результат
+              navigate(`/result/${r.session_id}`, { state: { scenarioId: id, final: r } })
+              return
+            }
+            res = r
+          } catch {
+            // Сессия истекла или недоступна — начнём заново
+            clearSession(id)
+          }
+        }
+        if (!res) {
+          res = await startGame({ scenario_id: id, user_id: userId })
+        }
         if (cancelled) return
+        if (res.is_over) return
+        saveSession(id, res.session_id)
         setCurrent(res)
         setRisk(res.risk)
         setTimeLeft(GAME_TIME_SEC)
@@ -85,7 +119,7 @@ export default function SimulatorPage() {
     return () => {
       cancelled = true
     }
-  }, [id, runId])
+  }, [id, runId, navigate])
 
   // Отсчёт времени на сценарий
   useEffect(() => {
@@ -100,6 +134,7 @@ export default function SimulatorPage() {
   }, [timeLeft, current])
 
   const restart = () => {
+    if (id) clearSession(id)
     setMessages([])
     setCurrent(null)
     setRisk(0)
@@ -146,8 +181,10 @@ export default function SimulatorPage() {
       const res = await stepGame({ session_id: current.session_id, answer_id: option.id })
       setSending(false)
       if (res.is_over) {
+        if (id) clearSession(id)
         finish(res)
       } else {
+        if (id) saveSession(id, res.session_id)
         setCurrent(res)
         setRisk(res.risk)
         setMessages((prev) => [
@@ -177,6 +214,7 @@ export default function SimulatorPage() {
   }
 
   const finish = (final: GameFinal) => {
+    if (id) clearSession(id)
     setCurrent(final)
     setRisk(final.risk)
     const score = Math.max(0, 100 - Math.min(100, final.risk))
@@ -188,7 +226,8 @@ export default function SimulatorPage() {
         score,
         grade: final.final_grade,
         createdAt: new Date().toISOString(),
-        tags: final.tags,
+        mistakes: final.mistakes,
+        insights: final.insights,
       })
     }
     setTimeout(() => {

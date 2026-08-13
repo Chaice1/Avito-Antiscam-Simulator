@@ -10,7 +10,8 @@ export interface ResultEntry {
 export interface Attempt extends ResultEntry {
   scenarioId: string
   scenarioTitle: string
-  tags?: GameTag[]
+  mistakes?: GameTag[]
+  insights?: GameTag[]
 }
 
 interface ResultsState {

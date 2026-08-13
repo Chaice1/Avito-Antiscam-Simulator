@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Button, Empty, Spin } from 'antd'
+import { App, Button, Empty, Spin } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import {
   ShoppingCartOutlined,
@@ -11,7 +11,6 @@ import { colors, radius } from '../shared/theme'
 import { useRoleStore } from '../features/role/model/roleStore'
 import { MOCK_SCENARIOS, type Scenario } from '../features/scenarios/model/mockScenarios'
 import { generateAI, getScenarios } from '../shared/api/client'
-import { mockGenerateAI } from '../shared/api/mockGame'
 import { ensureUserId } from '../shared/api/storage'
 import FadeIn from '../shared/ui/FadeIn'
 import { useResultsStore } from '../features/results/model/resultsStore'
@@ -22,6 +21,7 @@ const ROLE_ICONS: Record<Scenario['role'], React.ReactNode> = {
 }
 
 export default function TrainPage() {
+  const { message } = App.useApp()
   const navigate = useNavigate()
   const role = useRoleStore((s) => s.role)
   const results = useResultsStore((s) => s.best)
@@ -34,9 +34,10 @@ export default function TrainPage() {
       const userId = await ensureUserId()
       const res = await generateAI({ scenario: scenarioId, user_id: userId })
       navigate(`/train/${res.scenario_id}`)
-    } catch {
-      const res = await mockGenerateAI(scenarioId)
-      navigate(`/train/${res.scenario_id}`)
+    } catch (err) {
+      message.error(
+        `Не удалось сгенерировать сценарий: сервер недоступен (${err instanceof Error ? err.message : 'ошибка'}). Попробуйте позже.`,
+      )
     } finally {
       setGeneratingId(null)
     }

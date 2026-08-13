@@ -1,11 +1,4 @@
-import type {
-  GameFinal,
-  GameOption,
-  GameStartResponse,
-  GameStepResponse,
-  GameTag,
-  GenerateAIResponse,
-} from './types'
+import type { GameFinal, GameOption, GameStartResponse, GameStepResponse, GameTag } from './types'
 
 const Q1 =
   'Привет! Телефон ещё свободен. Чтобы забронировать, переведи аванс 5000₽ на карту — сразу отправлю доставку'
@@ -27,6 +20,11 @@ const RISK_EXPLANATIONS: Record<string, string> = {
   ans_2_1: 'Код из SMS даёт доступ к твоим деньгам — его нельзя называть никому, даже «курьеру».',
 }
 
+const INSIGHT_EXPLANATIONS: Record<string, string> = {
+  ans_1_2: 'Оплата только через площадку — верное решение: деньги защищены гарантиями сервиса.',
+  ans_2_2: 'Не называть код из SMS — правильно: код даёт доступ к твоим деньгам.',
+}
+
 interface MockSession {
   question: string
   options: GameOption[]
@@ -46,21 +44,15 @@ function toMistakes(choices: MockSession['choices']): GameTag[] {
     }))
 }
 
-export async function mockGenerateAI(scenarioId: string): Promise<GenerateAIResponse> {
-  const scenario = MOCK_SCENARIOS_DISPLAY.find((s) => s.id === scenarioId)
-  return {
-    scenario_id: `ai_${scenarioId}_${Math.random().toString(36).slice(2, 6)}`,
-    title: scenario ? `AI: ${scenario.title}` : `AI-сценарий`,
-    role: 'buyer',
-  }
+function toInsights(choices: MockSession['choices']): GameTag[] {
+  return choices
+    .filter((c) => INSIGHT_EXPLANATIONS[c.answerId])
+    .map((c) => ({
+      question: c.question,
+      answer: c.answer,
+      explanation: INSIGHT_EXPLANATIONS[c.answerId],
+    }))
 }
-
-const MOCK_SCENARIOS_DISPLAY: { id: string; title: string }[] = [
-  { id: 'buyer_iphone', title: 'Покупка iPhone 14 Pro Max' },
-  { id: 'seller_card', title: 'Продажа банковской карты' },
-  { id: 'seller_gpu', title: 'Продажа видеокарты' },
-  { id: 'tenant_flat', title: 'Аренда квартиры' },
-]
 
 export async function mockStartGame(scenarioId: string): Promise<GameStartResponse> {
   const sessionId = `mock-${scenarioId}-${Math.random().toString(36).slice(2, 8)}`
@@ -124,7 +116,8 @@ export async function mockGameStep(sessionId: string, answerId: string): Promise
       risk: session.risk,
       is_over: true,
       final_grade: 'Жертва мошенничества',
-      tags: toMistakes(session.choices),
+      mistakes: toMistakes(session.choices),
+      insights: toInsights(session.choices),
     }
     return final
   }
@@ -134,7 +127,8 @@ export async function mockGameStep(sessionId: string, answerId: string): Promise
     risk: session.risk,
     is_over: true,
     final_grade: session.risk >= 70 ? 'Чуть не попался' : 'Сделка безопасна',
-    tags: toMistakes(session.choices),
+    mistakes: toMistakes(session.choices),
+    insights: toInsights(session.choices),
   }
   return final
 }

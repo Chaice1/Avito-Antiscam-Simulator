@@ -11,6 +11,7 @@ export interface HistoryItem {
   total_risk: number
   final_grade: string
   tags: GameTag[]
+  insights?: GameTag[]
   created_at: string
 }
 
@@ -53,7 +54,8 @@ export interface GameFinal {
   risk: number
   is_over: true
   final_grade: string
-  tags: GameTag[]
+  mistakes: GameTag[]
+  insights?: GameTag[]
 }
 
 export type GameStepResponse = GameContinue | GameFinal
@@ -80,6 +82,6 @@ export interface GenerateAIRequest {
 
 export interface GenerateAIResponse {
   scenario_id: string
-  title: string
-  role: 'buyer' | 'seller'
+  title?: string
+  role?: 'buyer' | 'seller'
 }
