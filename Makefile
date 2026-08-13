@@ -1,7 +1,10 @@
 .PHONY: build up down
 build:
 	docker-compose up -d --build
-up:
+run:
 	docker-compose down --volumes && docker-compose up -d
-down:
+stop:
 	docker-compose down
+
+unit:
+	make -C backend test

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	simulatorcontroller "antiscam-simulator/internal/simulator/controller/http"
-	"antiscam-simulator/internal/user/controller/http"
+	usercontroller "antiscam-simulator/internal/user/controller/http"
 )
 
 type Server struct {
@@ -26,6 +26,8 @@ func NewServer(port string, userController *usercontroller.UserController, simCo
 	mux.HandleFunc("POST /api/v1/game/start", simController.StartGame())
 	mux.HandleFunc("POST /api/v1/game/step", simController.ProcessStep())
 	mux.HandleFunc("GET /api/v1/scenarios", simController.GetScenarios())
+	mux.HandleFunc("POST /api/v1/game/generate_ai", simController.GenerateScenario())
+	mux.HandleFunc("GET /api/v1/game/resume", simController.ResumeGame())
 
 	return &Server{
 		httpServer: &http.Server{

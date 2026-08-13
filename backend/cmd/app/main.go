@@ -9,6 +9,7 @@ import (
 	"os/signal"
 
 	"antiscam-simulator/config"
+	llmclient "antiscam-simulator/internal/simulator/adapter/LLmClient"
 	localstorage "antiscam-simulator/internal/simulator/adapter/localStorage"
 	redisDB "antiscam-simulator/internal/simulator/adapter/redis"
 	simulatorController "antiscam-simulator/internal/simulator/controller/http"
@@ -52,7 +53,8 @@ func runApp() error {
 
 	userRepo := postgres.NewUserRepository(pool)
 
-	simUsecase := simulatorUsecase.NewUsecaseSimulator(redis, storageScenarios)
+	clientLLM := llmclient.NewClientLLM(cfg.LLM.Key, cfg.LLM.FolderID)
+	simUsecase := simulatorUsecase.NewUsecaseSimulator(redis, storageScenarios, clientLLM)
 	userSvc := userusecase.NewUsecaseUser(userRepo)
 
 	simCtrl := simulatorController.NewSimulatorController(simUsecase, storageScenarios, userRepo)

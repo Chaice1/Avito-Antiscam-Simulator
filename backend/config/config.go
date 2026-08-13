@@ -13,6 +13,7 @@ type Config struct {
 	Cache    Cache       `yaml:"cache"`
 	Redis    Redis       `yaml:"redis"`
 	Database Database    `yaml:"db"`
+	LLM      LLM         `yaml:"llm"`
 }
 
 type Database struct {
@@ -33,6 +34,11 @@ type Cache struct {
 
 type Redis struct {
 	Address string `yaml:"address" env:"REDIS_ADDRESS"`
+}
+
+type LLM struct {
+	Key      string `yaml:"key" env:"YANDEX_KEY"`
+	FolderID string `yaml:"folder_id" env:"YANDEX_FOLDER_ID"`
 }
 
 func MustLoad() *Config {

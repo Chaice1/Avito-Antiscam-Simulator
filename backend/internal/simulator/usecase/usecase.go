@@ -2,6 +2,7 @@ package simulatorusecase
 
 import (
 	simulatordomain "antiscam-simulator/internal/simulator/domain"
+	simulatordto "antiscam-simulator/internal/simulator/dto"
 	"context"
 	"errors"
 
@@ -16,22 +17,44 @@ type Redis interface {
 type StorageGraphScenarios interface {
 	GetNode(string, string) (simulatordomain.Node, error)
 	GetScenarios() []*simulatordomain.Scenario
+	SaveScenario(*simulatordomain.Graph)
+}
+
+type ClientLLM interface {
+	GenerateScenario(context.Context) (*simulatordto.Graph, error)
 }
 
 type UsecaseSimulator struct {
-	r Redis
-	s StorageGraphScenarios
+	r    Redis
+	s    StorageGraphScenarios
+	cllm ClientLLM
 }
 
-func NewUsecaseSimulator(r Redis, s StorageGraphScenarios) *UsecaseSimulator {
+func NewUsecaseSimulator(r Redis, s StorageGraphScenarios, cllm ClientLLM) *UsecaseSimulator {
 	return &UsecaseSimulator{
-		r: r,
-		s: s,
+		r:    r,
+		s:    s,
+		cllm: cllm,
 	}
 }
 
 func (us *UsecaseSimulator) GetScenarios() []*simulatordomain.Scenario {
 	return us.s.GetScenarios()
+}
+
+func (us *UsecaseSimulator) GenerateScenario(ctx context.Context) (string, error) {
+	dtoGraph, err := us.cllm.GenerateScenario(ctx)
+
+	if err != nil {
+		return "", err
+	}
+
+	graph := dtoGraph.MapDtoToDomain()
+	graph.IsAi = true
+
+	us.s.SaveScenario(graph)
+
+	return graph.Scenario.ScenarioID, nil
 }
 
 func (us *UsecaseSimulator) StartGame(ctx context.Context, userID, scenarioID string) (string, *simulatordomain.Node, error) {
@@ -62,6 +85,7 @@ func (us *UsecaseSimulator) StartGame(ctx context.Context, userID, scenarioID st
 
 	return sessionID.String(), &nodeID, nil
 }
+
 func (us *UsecaseSimulator) ProcessStep(ctx context.Context, answerID, sessionID string) (*simulatordomain.Node, *simulatordomain.Session, error) {
 
 	session, err := us.r.GetSessionInfo(ctx, sessionID)
@@ -80,6 +104,10 @@ func (us *UsecaseSimulator) ProcessStep(ctx context.Context, answerID, sessionID
 
 	if session.IsOver {
 		return &currentNode, session, simulatordomain.ErrGameIsOver
+	}
+
+	if answerID == "" {
+		return &currentNode, session, nil
 	}
 
 	var option *simulatordomain.Option
