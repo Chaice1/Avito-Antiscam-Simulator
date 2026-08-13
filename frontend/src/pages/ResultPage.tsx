@@ -123,7 +123,12 @@ export default function ResultPage() {
                     Твой ответ
                   </div>
                   <div
-                    style={{ fontSize: 14, fontWeight: 700, color: colors.riskHigh, marginBottom: 10 }}
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 700,
+                      color: colors.riskHigh,
+                      marginBottom: 10,
+                    }}
                   >
                     {tag.answer}
                   </div>
