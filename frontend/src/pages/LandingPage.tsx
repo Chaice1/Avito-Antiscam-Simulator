@@ -12,6 +12,8 @@ import {
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { colors, radius } from '../shared/theme'
+import { getUserId } from '../shared/api/storage'
+import { useResultsStore } from '../features/results/model/resultsStore'
 import { useRoleStore, type Role } from '../features/role/model/roleStore'
 import { useUserStore } from '../features/user/model/userStore'
 import { registerWithName } from '../shared/api/storage'
@@ -130,10 +132,15 @@ export default function LandingPage() {
       message.warning('Введите имя')
       return
     }
+    const previousId = getUserId()
     setRegistering(true)
     try {
       await registerWithName(name)
       setUsername(name)
+      // Новый пользователь — старый локальный прогресс не показываем
+      if (previousId && previousId !== getUserId()) {
+        useResultsStore.getState().clearProgress()
+      }
       message.success(`Вы вошли как ${name}`)
     } catch {
       message.error('Не удалось зарегистрироваться — попробуйте позже')

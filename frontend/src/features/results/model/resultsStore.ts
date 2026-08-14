@@ -18,6 +18,7 @@ interface ResultsState {
   best: Record<string, ResultEntry>
   attempts: Attempt[]
   addResult: (attempt: Attempt) => void
+  clearProgress: () => void
 }
 
 const STORAGE_KEY = 'antiscam_progress'
@@ -65,5 +66,10 @@ export const useResultsStore = create<ResultsState>((set) => {
         persist(next)
         return next
       }),
+    clearProgress: () => {
+      localStorage.removeItem(STORAGE_KEY)
+      localStorage.removeItem('antiscam_results')
+      set({ best: {}, attempts: [] })
+    },
   }
 })
